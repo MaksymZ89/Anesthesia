@@ -1,0 +1,73 @@
+# =====================================================================
+# Rules.txt — anesthesia qualification rule definitions
+# =====================================================================
+# Edit this file to control what text gets added to the generated
+# document. Lines starting with # are comments and are ignored.
+#
+# SYNTAX:
+#   IF <field> <operator> "<value>" THEN <action> "<text>"
+#
+# You can join multiple conditions with AND:
+#   IF <field> <operator> "<value>" AND <field> <operator> "<value>" THEN <action> "<text>"
+#
+# FIELDS:
+#   sex          - patient sex. value: "male" or "female"
+#   age          - patient age in years (numeric)
+#   illness      - any selected illness/comorbidity (checked items)
+#   medication   - any selected medication (checked items)
+#
+# OPERATORS:
+#   CONTAINS     - true if the selected list contains an item matching
+#                  the text (for illness/medication), or if sex/age text
+#                  matches. Case-insensitive, partial match.
+#   EQUALS       - exact match (mostly useful for sex)
+#   >, >=, <, <= - numeric comparison (only meaningful for age)
+#
+# ACTIONS:
+#   ADD_CONSULTATION "text"   - adds an item to the "Required consultations" section
+#   ADD_NOTE "text"           - adds an item to the "Additional notes" section
+#   ADD_WARNING "text"        - adds an item to the "Warnings" section
+#
+# Examples are provided below — edit, remove, or add to them freely.
+# =====================================================================
+
+# --- Cardiovascular ---
+IF illness CONTAINS "Ischemic heart disease" THEN ADD_CONSULTATION "Cardiology consultation required."
+IF illness CONTAINS "Heart failure" THEN ADD_CONSULTATION "Cardiology consultation required; consider echocardiography if not performed within the last 12 months."
+IF illness CONTAINS "Arrhythmia" THEN ADD_CONSULTATION "Cardiology consultation recommended; review most recent ECG."
+IF illness CONTAINS "Hypertension" AND age >= 65 THEN ADD_NOTE "Monitor blood pressure closely in the perioperative period given age and hypertension history."
+
+# --- Respiratory ---
+IF illness CONTAINS "Obstructive sleep apnea" THEN ADD_WARNING "Increased risk of perioperative airway complications due to OSA; consider postoperative monitoring."
+IF illness CONTAINS "COPD" THEN ADD_CONSULTATION "Pulmonology consultation recommended; consider spirometry if not recent."
+IF illness CONTAINS "Asthma" THEN ADD_NOTE "Ensure bronchodilator therapy is available perioperatively."
+
+# --- Endocrine / Metabolic ---
+IF illness CONTAINS "Diabetes mellitus" THEN ADD_NOTE "Perioperative glucose monitoring recommended."
+IF illness CONTAINS "Diabetes mellitus" AND medication CONTAINS "Insulin" THEN ADD_NOTE "Adjust insulin dosing on the day of surgery per institutional protocol."
+IF illness CONTAINS "Thyroid disease" THEN ADD_NOTE "Confirm current thyroid function status prior to surgery."
+IF illness CONTAINS "Obesity" THEN ADD_WARNING "Consider difficult airway precautions and appropriate dosing adjustments due to obesity."
+
+# --- Renal / Hepatic ---
+IF illness CONTAINS "Chronic kidney disease" THEN ADD_CONSULTATION "Nephrology consultation may be required depending on disease stage."
+IF illness CONTAINS "Liver disease" THEN ADD_NOTE "Review coagulation status and drug metabolism considerations due to hepatic impairment."
+
+# --- Neurological ---
+IF illness CONTAINS "Stroke history" THEN ADD_CONSULTATION "Neurology consultation recommended; review current neurological status."
+IF illness CONTAINS "Epilepsy" THEN ADD_NOTE "Continue antiepileptic medication regimen perioperatively unless otherwise instructed."
+
+# --- Hematological ---
+IF illness CONTAINS "Anemia" THEN ADD_NOTE "Check recent hemoglobin level; consider correction prior to surgery if indicated."
+
+# --- Medications ---
+IF medication CONTAINS "ACEI" THEN ADD_NOTE "Consider withholding ACE inhibitors on the day of surgery per institutional protocol."
+IF medication CONTAINS "ARB" THEN ADD_NOTE "Consider withholding angiotensin receptor blockers on the day of surgery per institutional protocol."
+IF medication CONTAINS "Anticoagulants" THEN ADD_WARNING "Confirm anticoagulant therapy timing/bridging plan prior to surgery; assess bleeding risk."
+IF medication CONTAINS "Antiplatelets" THEN ADD_WARNING "Confirm antiplatelet therapy management plan prior to surgery; assess bleeding risk."
+IF medication CONTAINS "Corticosteroids" THEN ADD_NOTE "Consider stress-dose steroid coverage if on chronic corticosteroid therapy."
+IF medication CONTAINS "Beta blockers" THEN ADD_NOTE "Continue beta blocker therapy on the day of surgery unless otherwise contraindicated."
+IF medication CONTAINS "NSAIDs" THEN ADD_NOTE "Review NSAID use in relation to bleeding risk and renal function."
+
+# --- Age-based ---
+IF age >= 65 THEN ADD_NOTE "Consider age-related pharmacokinetic adjustments and frailty assessment."
+IF age < 1 THEN ADD_WARNING "Patient is an infant; pediatric anesthesia protocol applies."

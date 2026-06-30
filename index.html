@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anesthesia Qualification Note Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <span class="crest">DEPT. OF ANESTHESIOLOGY</span>
+  <h1>Preoperative Qualification Note Generator</h1>
+  <span class="sub">Rules-driven · for documentation support only</span>
+</header>
+
+<div class="layout">
+
+  <section class="form-pane">
+    <form id="patientForm">
+
+      <div class="card">
+        <p class="section-label">Patient</p>
+        <div class="field-row">
+          <div>
+            <label for="age">Age (years)</label>
+            <input type="number" id="age" min="0" max="120" step="1" placeholder="e.g. 67" />
+          </div>
+          <div>
+            <label for="sex">Sex</label>
+            <select id="sex">
+              <option value="">Select…</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">Illnesses &amp; chronic diseases</p>
+        <fieldset>
+          <div class="check-grid">
+            <label class="check-item"><input type="checkbox" name="illness" value="Hypertension"><span>Hypertension</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Ischemic heart disease"><span>Ischemic heart disease</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Heart failure"><span>Heart failure</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Arrhythmia"><span>Arrhythmia</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Diabetes mellitus"><span>Diabetes mellitus</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Asthma"><span>Asthma</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="COPD"><span>COPD</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Obstructive sleep apnea"><span>Obstructive sleep apnea</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Chronic kidney disease"><span>Chronic kidney disease</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Liver disease"><span>Liver disease</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Obesity"><span>Obesity</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Thyroid disease"><span>Thyroid disease</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Anemia"><span>Anemia</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Stroke history"><span>Stroke history</span></label>
+            <label class="check-item"><input type="checkbox" name="illness" value="Epilepsy"><span>Epilepsy</span></label>
+          </div>
+        </fieldset>
+        <label for="otherIllness">Other (free text)</label>
+        <textarea id="otherIllness" class="free-text" placeholder="Anything not listed above…"></textarea>
+      </div>
+
+      <div class="card">
+        <p class="section-label">Current medication</p>
+        <fieldset>
+          <div class="check-grid">
+            <label class="check-item"><input type="checkbox" name="medication" value="ACEI"><span>ACE inhibitor</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="ARB"><span>ARB</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Beta blockers"><span>Beta blocker</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Calcium channel blockers"><span>Calcium channel blocker</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Diuretics"><span>Diuretic</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Anticoagulants"><span>Anticoagulant</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Antiplatelets"><span>Antiplatelet</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Insulin"><span>Insulin</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Oral hypoglycemics"><span>Oral hypoglycemic</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Corticosteroids"><span>Corticosteroid</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="NSAIDs"><span>NSAID</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Statins"><span>Statin</span></label>
+            <label class="check-item"><input type="checkbox" name="medication" value="Sedatives/benzodiazepines"><span>Sedative / benzodiazepine</span></label>
+          </div>
+        </fieldset>
+        <label for="otherMedication">Other (free text)</label>
+        <textarea id="otherMedication" class="free-text" placeholder="Anything not listed above…"></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" id="generateBtn" class="btn">Generate note</button>
+        <button type="button" id="resetBtn" class="btn secondary">Reset</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="output-pane">
+    <div class="report">
+      <div class="report-head">
+        <div class="doc-title">Generated documentation</div>
+        <h2>Qualification Note</h2>
+        <div class="tag-row" id="tagRow"></div>
+      </div>
+      <div class="report-body" id="reportBody"><span class="empty">Fill in patient data and click "Generate note" to produce text here.</span></div>
+      <div class="report-foot">
+        <button type="button" id="copyBtn" class="btn secondary">Copy text</button>
+        <button type="button" id="downloadBtn" class="btn secondary">Download .txt</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer-link">
+  Rule definitions are read from <code>rules.txt</code>. &nbsp;·&nbsp;
+  <a href="admin.html">Edit rules (admin)</a>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
