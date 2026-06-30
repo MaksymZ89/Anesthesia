@@ -40,6 +40,118 @@
       </div>
 
       <div class="card">
+        <p class="section-label">Procedura i parametry</p>
+        <div class="field-row">
+          <div>
+            <label for="mass">Masa ciała (kg)</label>
+            <input type="number" id="mass" min="0" step="0.1" placeholder="e.g. 75" />
+          </div>
+          <div>
+            <label for="height">Wzrost (cm)</label>
+            <input type="number" id="height" min="0" step="0.5" placeholder="e.g. 172" />
+          </div>
+        </div>
+        <label for="operation">Zabieg</label>
+        <input type="text" id="operation" placeholder="e.g. cholecystectomy" />
+        <div class="field-row">
+          <div>
+            <label for="operationYear">Rok zabiegu</label>
+            <input type="number" id="operationYear" min="1900" max="2100" step="1" placeholder="2026" />
+          </div>
+          <div>
+            <label for="anesthesiaType">Rodzaj znieczulenia</label>
+            <input type="text" id="anesthesiaType" placeholder="np. ogólne / podpajęczynówkowe" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">Badanie kliniczne</p>
+        <div class="field-row">
+          <div>
+            <label for="respiratoryRate">RR/min</label>
+            <input type="number" id="respiratoryRate" min="0" placeholder="e.g. 16" />
+          </div>
+          <div>
+            <label for="saturation">SpO2 (%)</label>
+            <input type="number" id="saturation" min="0" max="100" placeholder="e.g. 98" />
+          </div>
+        </div>
+        <label for="lungAuscultation">Osłuchowo</label>
+        <input type="text" id="lungAuscultation" placeholder="np. czyste, świsty" />
+        <label for="neurologicalSigns">Deficyty neurologiczne</label>
+        <input type="text" id="neurologicalSigns" placeholder="np. brak / osłabienie" />
+        <div class="field-row">
+          <div>
+            <label for="bloodPressure">Ciśnienie tętnicze</label>
+            <input type="text" id="bloodPressure" placeholder="np. 130/80" />
+          </div>
+          <div>
+            <label for="heartRate">HR/min</label>
+            <input type="number" id="heartRate" min="0" placeholder="e.g. 76" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="arytmia">Arytmia</label>
+            <input type="text" id="arytmia" placeholder="np. brak / migotanie przedsionków" />
+          </div>
+          <div>
+            <label for="oedema">Obrzęki obwodowe</label>
+            <input type="text" id="oedema" placeholder="np. brak / niewielkie" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">Historia i czynniki ryzyka</p>
+        <label for="disease">Współistniejące choroby (opis)</label>
+        <textarea id="disease" class="free-text" placeholder="np. cukrzyca, wcześniejszy udar"></textarea>
+        <label for="allergies">Alergie</label>
+        <input type="text" id="allergies" placeholder="np. penicylina, lateks" />
+        <div class="field-row">
+          <div>
+            <label for="smoking">Palenie / waporyzacja</label>
+            <input type="text" id="smoking" placeholder="np. 5 papierosów/dzień" />
+          </div>
+          <div>
+            <label for="drugs">Alkohol / substancje psychoaktywne</label>
+            <input type="text" id="drugs" placeholder="np. alkohol rekreacyjnie" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">Wyniki konsultacji i zalecenia</p>
+        <label for="qualificationResult">Wynik konsultacji</label>
+        <textarea id="qualificationResult" class="free-text" placeholder="np. kwalifikacja do znieczulenia" rows="3"></textarea>
+        <div class="field-row">
+          <div>
+            <label for="asaScale">Skala ASA</label>
+            <input type="text" id="asaScale" placeholder="np. ASA II" />
+          </div>
+          <div>
+            <label for="mallampathiScale">Skala Mallampathi</label>
+            <input type="text" id="mallampathiScale" placeholder="np. III" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="neckMobility">Ruchomość szyi</label>
+            <input type="text" id="neckMobility" placeholder="np. pełna / ograniczona" />
+          </div>
+          <div>
+            <label for="teethCondition">Zęby</label>
+            <input type="text" id="teethCondition" placeholder="np. w dobrym stanie" />
+          </div>
+        </div>
+        <label for="recommendationGeneral">Zalecenia ogólne</label>
+        <textarea id="recommendationGeneral" class="free-text" placeholder="np. zachować poziom glikemii" rows="3"></textarea>
+        <label for="recommendationMedication">Leki</label>
+        <textarea id="recommendationMedication" class="free-text" placeholder="np. kontynuować beta-blokery" rows="3"></textarea>
+      </div>
+
+      <div class="card">
         <p class="section-label">Illnesses &amp; chronic diseases</p>
         <fieldset>
           <div class="check-grid">

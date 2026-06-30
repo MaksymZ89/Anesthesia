@@ -10,6 +10,48 @@ const ACTION_LABEL = {
 
 let RULES = [];
 
+const REPORT_TEMPLATE = `Konsultacja Anestezjologiczna
+Pacjent [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
+Zabieg [Operation]
+Ukł. Nerwowy: przytomna/y, zorientowana/y auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]?
+Ukł. Oddechowy: wydolny, [Respiratory_Rate] RR/min, saturacja [Saturation]%. Osłuchowo [Lung_Auscultation]
+Ukł. Krążenia: wydolny, Tony serca w normie . BP [Blood_Preasure] , [Heart_Rate] /min. [Arytmia]. Obrzęki obwodowe - [Oedema]
+Współistniejące choroby:
+
+[Disease]
+
+Przyjmowane leki : [Medications]
+
+Historia zabiegów operacyjnych:
+Zabieg [Operation] r.[Operation_Year] [Anesthesia_Type]
+
+Uczulenia - [Alergie]
+Palenia/Waporyzacja [Smoking]
+Alkohol/Substancje psychoaktywne [Drugs]
+
+Wynik konsultacji:
+[Qualification_Result]
+
+Skala ASA - [ASA_Scale], Skala Mallapathi - [Mallampathi_Scale], ruchomość szyi [Neck_Mobility],  zęby - [Teeth_condition]
+Zalecenia:
+[Recomendation_General]
+
+Leki:
+[Recomendation_Medication]`;
+
+function getValue(id) {
+  const element = document.getElementById(id);
+  return element ? element.value.trim() : "";
+}
+
+function formatField(value) {
+  return value == null ? "" : String(value);
+}
+
+function fillTemplate(template, data) {
+  return template.replace(/\[([^\]]+)]/g, (_, key) => formatField(data[key]));
+}
+
 // ---- Rules.txt parser -------------------------------------------------
 // Syntax: IF <field> <op> "<value>" [AND <field> <op> "<value>"]* THEN <ACTION> "<text>"
 function parseRules(raw) {
@@ -86,50 +128,64 @@ function runRules(rules, data) {
 
 // ---- Form helpers -------------------------------------------------------
 function collectFormData() {
-  const age = parseFloat(document.getElementById("age").value);
-  const sex = document.getElementById("sex").value;
+  const age = parseFloat(getValue("age"));
+  const sex = getValue("sex");
   const illnesses = Array.from(document.querySelectorAll('input[name="illness"]:checked')).map((el) => el.value);
   const medications = Array.from(document.querySelectorAll('input[name="medication"]:checked')).map((el) => el.value);
-  const otherIllness = document.getElementById("otherIllness").value.trim();
-  const otherMedication = document.getElementById("otherMedication").value.trim();
+  const otherIllness = getValue("otherIllness");
+  const otherMedication = getValue("otherMedication");
+  const diseaseText = getValue("disease");
+
   if (otherIllness) illnesses.push(otherIllness);
+  if (diseaseText) illnesses.push(diseaseText);
   if (otherMedication) medications.push(otherMedication);
 
-  return { age, sex, illnesses, medications };
+  const fields = {
+    Age: getValue("age"),
+    Mass: getValue("mass"),
+    Height: getValue("height"),
+    Operation: getValue("operation"),
+    Neurological_Signs: getValue("neurologicalSigns"),
+    Respiratory_Rate: getValue("respiratoryRate"),
+    Saturation: getValue("saturation"),
+    Lung_Auscultation: getValue("lungAuscultation"),
+    Blood_Preasure: getValue("bloodPressure"),
+    Heart_Rate: getValue("heartRate"),
+    Arytmia: getValue("arytmia"),
+    Oedema: getValue("oedema"),
+    Disease: diseaseText || illnesses.join(", "),
+    Medications: medications.join(", "),
+    Operation_Year: getValue("operationYear"),
+    Anesthesia_Type: getValue("anesthesiaType"),
+    Alergie: getValue("allergies"),
+    Smoking: getValue("smoking"),
+    Drugs: getValue("drugs"),
+    Qualification_Result: getValue("qualificationResult"),
+    ASA_Scale: getValue("asaScale"),
+    Mallampathi_Scale: getValue("mallampathiScale"),
+    Neck_Mobility: getValue("neckMobility"),
+    Teeth_condition: getValue("teethCondition"),
+    Recomendation_General: getValue("recommendationGeneral"),
+    Recomendation_Medication: getValue("recommendationMedication"),
+  };
+
+  return { age, sex, illnesses, medications, fields };
 }
 
 function buildReportText(data, results) {
-  const lines = [];
-  const dateStr = new Date().toLocaleDateString();
+  const generated = [];
+  results.ADD_CONSULTATION.forEach((text) => generated.push(`Konsultacja: ${text}`));
+  results.ADD_WARNING.forEach((text) => generated.push(`Ostrzeżenie: ${text}`));
+  results.ADD_NOTE.forEach((text) => generated.push(`Uwaga: ${text}`));
 
-  lines.push(`PREOPERATIVE ANESTHESIA QUALIFICATION NOTE`);
-  lines.push(`Date: ${dateStr}`);
-  lines.push("");
-  lines.push(`Patient: ${Number.isFinite(data.age) ? data.age + " y/o" : "[age not entered]"} ${data.sex || "[sex not selected]"}`);
-  lines.push(`Comorbidities: ${data.illnesses.length ? data.illnesses.join(", ") : "none reported"}`);
-  lines.push(`Current medication: ${data.medications.length ? data.medications.join(", ") : "none reported"}`);
-  lines.push("");
-
-  if (results.ADD_CONSULTATION.length) {
-    lines.push("REQUIRED CONSULTATIONS:");
-    results.ADD_CONSULTATION.forEach((t) => lines.push(`  - ${t}`));
-    lines.push("");
-  }
-  if (results.ADD_WARNING.length) {
-    lines.push("WARNINGS:");
-    results.ADD_WARNING.forEach((t) => lines.push(`  - ${t}`));
-    lines.push("");
-  }
-  if (results.ADD_NOTE.length) {
-    lines.push("ADDITIONAL NOTES:");
-    results.ADD_NOTE.forEach((t) => lines.push(`  - ${t}`));
-    lines.push("");
-  }
-  if (!results.ADD_CONSULTATION.length && !results.ADD_WARNING.length && !results.ADD_NOTE.length) {
-    lines.push("No additional consultations, warnings, or notes triggered by current selections.");
+  const generalRecs = data.fields.Recomendation_General.trim() ? [data.fields.Recomendation_General.trim()] : [];
+  if (generated.length) {
+    if (generalRecs.length) generalRecs.push("");
+    generalRecs.push("=== Automatyczne zalecenia ===", ...generated);
   }
 
-  return lines.join("\n");
+  const filledFields = { ...data.fields, Recomendation_General: generalRecs.join("\n") };
+  return fillTemplate(REPORT_TEMPLATE, filledFields);
 }
 
 function renderTags(results) {
