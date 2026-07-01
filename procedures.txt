@@ -1,0 +1,36 @@
+# Procedures list for dynamic department/procedure selection
+# Use Dział: <name> to define a new department.
+# Each subsequent non-empty, non-comment line is a procedure for that department.
+# You can add more departments later by repeating Dział: <name>.
+
+Dział: Chirurgia ogólna
+Cholecystektomia
+Węzłowanie przepukliny pachwinowej
+Hemiekstrakcja jelita grubego
+Laparoskopia diagnostyczna
+Resekcja guza tarczycy
+
+Dział: Ortopedia
+Endoprotezoplastyka stawu biodrowego
+Artroskopia kolana
+Rekonstrukcja więzadła krzyżowego przedniego
+Osteotomia piszczeli
+Operacja zęba trzonowego
+
+Dział: Ginekologia
+Histerektomia
+Laparo- i histeroskopowe wycięcie mięśniaka
+Cesarskie cięcie
+Operacja laparoskopowa guza jajnika
+
+Dział: Urologia
+Prostatektomia radykalna
+Endoskopowa resekcja gruczołu krokowego (TURP)
+Nefrektomia częściowa
+Litotrypsja
+
+Dział: Otolaryngologia
+Tympanoplastyka
+Septoplastyka
+Usunięcie migdałków podniebiennych
+Endoskopowa operacja zatok

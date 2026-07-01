@@ -86,6 +86,16 @@ reference in `rules.txt`.
    GitHub.com works fine for small edits) and the live site updates
    automatically within a minute or two
 
+> If you open `index.html` directly in the browser with a `file://` URL,
+> the department list may fail to load because `fetch()` cannot read local
+> files in that mode. Run a simple local server instead, for example:
+>
+> ```bash
+> python -m http.server 8000
+> ```
+>
+> Then open `http://localhost:8000` in your browser.
+
 ## Important caveat
 
 This tool generates draft text to assist documentation — it does not

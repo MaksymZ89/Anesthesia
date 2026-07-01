@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Anesthesia Qualification Note Generator</title>
+<title>Generator notatki kwalifikacyjnej do znieczulenia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
@@ -12,8 +12,9 @@
 
 <header class="topbar">
   <span class="crest">DEPT. OF ANESTHESIOLOGY</span>
-  <h1>Preoperative Qualification Note Generator</h1>
-  <span class="sub">Rules-driven · for documentation support only</span>
+  <h1>Generator notatki kwalifikacyjnej przedoperacyjnej</h1>
+  <span class="sub">Oparte na regułach · tylko do wsparcia dokumentacji</span>
+  <span id="loadStatus" class="status-pill" style="display:none; margin-left:1rem;"></span>
 </header>
 
 <div class="layout">
@@ -22,51 +23,89 @@
     <form id="patientForm">
 
       <div class="card">
-        <p class="section-label">Patient</p>
+        <p class="section-label">Pacjent</p>
         <div class="field-row">
           <div>
-            <label for="age">Age (years)</label>
-            <input type="number" id="age" min="0" max="120" step="1" placeholder="e.g. 67" />
+            <label for="age">Wiek (lata)</label>
+            <input type="number" id="age" min="0" max="120" step="1" placeholder="np. 67" />
           </div>
           <div>
-            <label for="sex">Sex</label>
+            <label for="sex">Płeć</label>
             <select id="sex">
-              <option value="">Select…</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
+              <option value="">Wybierz…</option>
+              <option value="male">Mężczyzna</option>
+              <option value="female">Kobieta</option>
             </select>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <p class="section-label">Procedura i parametry</p>
+        <p class="section-label">Procedura</p>
+        <label for="department">Dział</label>
+        <select id="department">
+          <option value="">Wczytywanie działów…</option>
+        </select>
+        <label for="procedure">Zabieg</label>
+        <select id="procedure" disabled>
+          <option value="">Wybierz dział najpierw</option>
+        </select>
+        <div id="otherProcedureGroup" style="display:none; margin-top:0.75rem;">
+          <label for="otherProcedure">Inny zabieg (opis)</label>
+          <input type="text" id="otherProcedure" placeholder="Wpisz inny zabieg" />
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">Parametry</p>
         <div class="field-row">
           <div>
             <label for="mass">Masa ciała (kg)</label>
-            <input type="number" id="mass" min="0" step="0.1" placeholder="e.g. 75" />
+            <input type="number" id="mass" min="0" step="0.1" placeholder="np. 75" />
           </div>
           <div>
             <label for="height">Wzrost (cm)</label>
-            <input type="number" id="height" min="0" step="0.5" placeholder="e.g. 172" />
+            <input type="number" id="height" min="0" step="0.5" placeholder="np. 172" />
           </div>
         </div>
-        <label for="operation">Zabieg</label>
-        <input type="text" id="operation" placeholder="e.g. cholecystectomy" />
         <div class="field-row">
           <div>
-            <label for="operationYear">Rok zabiegu</label>
-            <input type="number" id="operationYear" min="1900" max="2100" step="1" placeholder="2026" />
+            <label for="respiratoryRate">RR/min</label>
+            <input type="number" id="respiratoryRate" min="0" placeholder="np. 16" />
           </div>
           <div>
-            <label for="anesthesiaType">Rodzaj znieczulenia</label>
-            <input type="text" id="anesthesiaType" placeholder="np. ogólne / podpajęczynówkowe" />
+            <label for="saturation">SpO2 (%)</label>
+            <input type="number" id="saturation" min="0" max="100" placeholder="np. 98" />
+          </div>
+        </div>
+        <label for="lungAuscultation">Osłuchowo</label>
+        <input type="text" id="lungAuscultation" placeholder="np. czyste, świsty" />
+        <label for="neurologicalSigns">Deficyty neurologiczne</label>
+        <input type="text" id="neurologicalSigns" placeholder="np. brak / osłabienie" />
+        <div class="field-row">
+          <div>
+            <label for="bloodPressure">Ciśnienie tętnicze</label>
+            <input type="text" id="bloodPressure" placeholder="np. 130/80" />
+          </div>
+          <div>
+            <label for="heartRate">HR/min</label>
+            <input type="number" id="heartRate" min="0" placeholder="np. 76" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="arytmia">Arytmia</label>
+            <input type="text" id="arytmia" placeholder="np. brak / migotanie przedsionków" />
+          </div>
+          <div>
+            <label for="oedema">Obrzęki obwodowe</label>
+            <input type="text" id="oedema" placeholder="np. brak / niewielkie" />
           </div>
         </div>
       </div>
 
       <div class="card">
-        <p class="section-label">Badanie kliniczne</p>
+        <p class="section-label">Historia i czynniki ryzyka</p>
         <div class="field-row">
           <div>
             <label for="respiratoryRate">RR/min</label>
@@ -152,7 +191,7 @@
       </div>
 
       <div class="card">
-        <p class="section-label">Illnesses &amp; chronic diseases</p>
+        <p class="section-label">Choroby współistniejące i przewlekłe</p>
         <fieldset>
           <div class="check-grid">
             <label class="check-item"><input type="checkbox" name="illness" value="Hypertension"><span>Hypertension</span></label>
@@ -172,12 +211,12 @@
             <label class="check-item"><input type="checkbox" name="illness" value="Epilepsy"><span>Epilepsy</span></label>
           </div>
         </fieldset>
-        <label for="otherIllness">Other (free text)</label>
-        <textarea id="otherIllness" class="free-text" placeholder="Anything not listed above…"></textarea>
+        <label for="otherIllness">Inne (tekst)</label>
+        <textarea id="otherIllness" class="free-text" placeholder="Wpisz inne choroby…"></textarea>
       </div>
 
       <div class="card">
-        <p class="section-label">Current medication</p>
+        <p class="section-label">Leki przyjmowane obecnie</p>
         <fieldset>
           <div class="check-grid">
             <label class="check-item"><input type="checkbox" name="medication" value="ACEI"><span>ACE inhibitor</span></label>
@@ -195,13 +234,13 @@
             <label class="check-item"><input type="checkbox" name="medication" value="Sedatives/benzodiazepines"><span>Sedative / benzodiazepine</span></label>
           </div>
         </fieldset>
-        <label for="otherMedication">Other (free text)</label>
-        <textarea id="otherMedication" class="free-text" placeholder="Anything not listed above…"></textarea>
+        <label for="otherMedication">Inne (tekst)</label>
+        <textarea id="otherMedication" class="free-text" placeholder="Wpisz inne leki…"></textarea>
       </div>
 
       <div class="btn-row">
-        <button type="button" id="generateBtn" class="btn">Generate note</button>
-        <button type="button" id="resetBtn" class="btn secondary">Reset</button>
+        <button type="button" id="generateBtn" class="btn">Generuj notatkę</button>
+        <button type="button" id="resetBtn" class="btn secondary">Wyczyść</button>
       </div>
     </form>
   </section>
@@ -209,14 +248,14 @@
   <section class="output-pane">
     <div class="report">
       <div class="report-head">
-        <div class="doc-title">Generated documentation</div>
-        <h2>Qualification Note</h2>
+        <div class="doc-title">Wygenerowana dokumentacja</div>
+        <h2>Notatka kwalifikacyjna</h2>
         <div class="tag-row" id="tagRow"></div>
       </div>
-      <div class="report-body" id="reportBody"><span class="empty">Fill in patient data and click "Generate note" to produce text here.</span></div>
+      <div class="report-body" id="reportBody"><span class="empty">Wypełnij dane pacjenta i kliknij "Generuj notatkę", aby wygenerować tekst tutaj.</span></div>
       <div class="report-foot">
-        <button type="button" id="copyBtn" class="btn secondary">Copy text</button>
-        <button type="button" id="downloadBtn" class="btn secondary">Download .txt</button>
+        <button type="button" id="copyBtn" class="btn secondary">Kopiuj tekst</button>
+        <button type="button" id="downloadBtn" class="btn secondary">Pobierz .txt</button>
       </div>
     </div>
   </section>
@@ -224,8 +263,8 @@
 </div>
 
 <div class="footer-link">
-  Rule definitions are read from <code>rules.txt</code>. &nbsp;·&nbsp;
-  <a href="admin.html">Edit rules (admin)</a>
+  Definicje reguł są wczytywane z <code>rules.txt</code>. &nbsp;·&nbsp;
+  <a href="admin.html">Edytuj reguły (admin)</a>
 </div>
 
 <script src="app.js"></script>

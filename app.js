@@ -9,11 +9,54 @@ const ACTION_LABEL = {
 };
 
 let RULES = [];
+let PROCEDURES_BY_DEPARTMENT = {};
+
+const DEFAULT_RULES_TEXT = `# Default rules placeholder — no rules loaded from file.
+# To use project-specific rules, open via a web server instead of file://
+`;
+
+const DEFAULT_PROCEDURES_TEXT = `# Procedures list for dynamic department/procedure selection
+# Use Dział: <name> to define a new department.
+# Each subsequent non-empty, non-comment line is a procedure for that department.
+# You can add more departments later by repeating Dział: <name>.
+
+Dział: Chirurgia ogólna
+Cholecystektomia
+Węzłowanie przepukliny pachwinowej
+Hemiekstrakcja jelita grubego
+Laparoskopia diagnostyczna
+Resekcja guza tarczycy
+
+Dział: Ortopedia
+Endoprotezoplastyka stawu biodrowego
+Artroskopia kolana
+Rekonstrukcja więzadła krzyżowego przedniego
+Osteotomia piszczeli
+Operacja zęba trzonowego
+
+Dział: Ginekologia
+Histerektomia
+Laparo- i histeroskopowe wycięcie mięśniaka
+Cesarskie cięcie
+Operacja laparoskopowa guza jajnika
+
+Dział: Urologia
+Prostatektomia radykalna
+Endoskopowa resekcja gruczołu krokowego (TURP)
+Nefrektomia częściowa
+Litotrypsja
+
+Dział: Otolaryngologia
+Tympanoplastyka
+Septoplastyka
+Usunięcie migdałków podniebiennych
+Endoskopowa operacja zatok`;
 
 const REPORT_TEMPLATE = `Konsultacja Anestezjologiczna
-Pacjent [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
+[Patient_Gendered] [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
+Dział [Department]
 Zabieg [Operation]
-Ukł. Nerwowy: przytomna/y, zorientowana/y auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]?
+Ukł. Nerwowy: [Neurological_Orientation] auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]?
 Ukł. Oddechowy: wydolny, [Respiratory_Rate] RR/min, saturacja [Saturation]%. Osłuchowo [Lung_Auscultation]
 Ukł. Krążenia: wydolny, Tony serca w normie . BP [Blood_Preasure] , [Heart_Rate] /min. [Arytmia]. Obrzęki obwodowe - [Oedema]
 Współistniejące choroby:
@@ -21,9 +64,6 @@ Współistniejące choroby:
 [Disease]
 
 Przyjmowane leki : [Medications]
-
-Historia zabiegów operacyjnych:
-Zabieg [Operation] r.[Operation_Year] [Anesthesia_Type]
 
 Uczulenia - [Alergie]
 Palenia/Waporyzacja [Smoking]
@@ -48,8 +88,157 @@ function formatField(value) {
   return value == null ? "" : String(value);
 }
 
+function getGenderFields(sex) {
+  if (sex === "female") {
+    return {
+      Patient_Gendered: "Pacjentka",
+      Neurological_Orientation: "przytomna, zorientowana",
+    };
+  }
+
+  if (sex === "male") {
+    return {
+      Patient_Gendered: "Pacjent",
+      Neurological_Orientation: "przytomny, zorientowany",
+    };
+  }
+
+  return {
+    Patient_Gendered: "Pacjent/ka",
+    Neurological_Orientation: "przytomna/y, zorientowana/y",
+  };
+}
+
 function fillTemplate(template, data) {
   return template.replace(/\[([^\]]+)]/g, (_, key) => formatField(data[key]));
+}
+
+function setLoadStatus(message) {
+  const status = document.getElementById("loadStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.style.display = message ? "inline-flex" : "none";
+}
+
+function parseProceduresTxt(raw) {
+  const lines = raw.split("\n");
+  const departments = {};
+  let current = null;
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) return;
+    const match = line.match(/^(Department|Dział):\s*(.+)$/i);
+    if (match) {
+      current = match[2].trim();
+      departments[current] = departments[current] || [];
+      return;
+    }
+    if (!current) return;
+    departments[current].push(line);
+  });
+
+  return departments;
+}
+
+function populateDepartmentSelect(placeholderText = "Wybierz dział…") {
+  const departmentSelect = document.getElementById("department");
+  departmentSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = placeholderText;
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  departmentSelect.appendChild(placeholder);
+
+  const departments = Object.keys(PROCEDURES_BY_DEPARTMENT);
+  if (!departments.length) {
+    departmentSelect.disabled = true;
+    return;
+  }
+
+  departmentSelect.disabled = false;
+  departments.forEach((dept) => {
+    const option = document.createElement("option");
+    option.value = dept;
+    option.textContent = dept;
+    departmentSelect.appendChild(option);
+  });
+}
+
+function populateProcedureSelect(department) {
+  const procedureSelect = document.getElementById("procedure");
+  const procedureGroup = document.getElementById("otherProcedureGroup");
+  procedureSelect.innerHTML = "";
+  procedureGroup.style.display = "none";
+
+  if (!department || !PROCEDURES_BY_DEPARTMENT[department]) {
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Wybierz dział najpierw";
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    procedureSelect.appendChild(placeholder);
+    procedureSelect.disabled = true;
+    return;
+  }
+
+  const options = PROCEDURES_BY_DEPARTMENT[department];
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Wybierz zabieg…";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  procedureSelect.appendChild(placeholder);
+
+  options.forEach((proc) => {
+    const option = document.createElement("option");
+    option.value = proc;
+    option.textContent = proc;
+    procedureSelect.appendChild(option);
+  });
+
+  const otherOption = document.createElement("option");
+  otherOption.value = "__other__";
+  otherOption.textContent = "Inny…";
+  procedureSelect.appendChild(otherOption);
+  procedureSelect.disabled = false;
+}
+
+function handleProcedureChange() {
+  const procedureSelect = document.getElementById("procedure");
+  const procedureGroup = document.getElementById("otherProcedureGroup");
+  if (procedureSelect.value === "__other__") {
+    procedureGroup.style.display = "block";
+  } else {
+    procedureGroup.style.display = "none";
+  }
+}
+
+async function loadProcedures() {
+  if (window.location.protocol === "file:") {
+    PROCEDURES_BY_DEPARTMENT = parseProceduresTxt(DEFAULT_PROCEDURES_TEXT);
+    populateDepartmentSelect("Korzystanie z domyślnych działów");
+    setLoadStatus("Otworzono z file:// — używane domyślne działy.");
+    return;
+  }
+
+  try {
+    const res = await fetch("procedures.txt", { cache: "no-store" });
+    const raw = await res.text();
+    PROCEDURES_BY_DEPARTMENT = parseProceduresTxt(raw);
+    if (Object.keys(PROCEDURES_BY_DEPARTMENT).length === 0) {
+      console.warn("procedures.txt loaded but no departments were parsed. Falling back to default list.");
+      PROCEDURES_BY_DEPARTMENT = parseProceduresTxt(DEFAULT_PROCEDURES_TEXT);
+      setLoadStatus("Działy wczytano z domyślnej listy lokalnej.");
+    }
+    populateDepartmentSelect();
+  } catch (e) {
+    console.error("Could not load procedures.txt", e);
+    PROCEDURES_BY_DEPARTMENT = parseProceduresTxt(DEFAULT_PROCEDURES_TEXT);
+    populateDepartmentSelect("Korzystanie z domyślnych działów");
+    setLoadStatus("Nie można wczytać procedures.txt — używane domyślne działy.");
+  }
 }
 
 // ---- Rules.txt parser -------------------------------------------------
@@ -135,16 +324,22 @@ function collectFormData() {
   const otherIllness = getValue("otherIllness");
   const otherMedication = getValue("otherMedication");
   const diseaseText = getValue("disease");
+  const department = getValue("department");
+  const procedure = getValue("procedure");
+  const otherProcedure = getValue("otherProcedure");
 
   if (otherIllness) illnesses.push(otherIllness);
   if (diseaseText) illnesses.push(diseaseText);
   if (otherMedication) medications.push(otherMedication);
 
+  const genderFields = getGenderFields(sex);
   const fields = {
+    ...genderFields,
     Age: getValue("age"),
     Mass: getValue("mass"),
     Height: getValue("height"),
-    Operation: getValue("operation"),
+    Department: department,
+    Operation: otherProcedure || procedure,
     Neurological_Signs: getValue("neurologicalSigns"),
     Respiratory_Rate: getValue("respiratoryRate"),
     Saturation: getValue("saturation"),
@@ -155,8 +350,6 @@ function collectFormData() {
     Oedema: getValue("oedema"),
     Disease: diseaseText || illnesses.join(", "),
     Medications: medications.join(", "),
-    Operation_Year: getValue("operationYear"),
-    Anesthesia_Type: getValue("anesthesiaType"),
     Alergie: getValue("allergies"),
     Smoking: getValue("smoking"),
     Drugs: getValue("drugs"),
@@ -236,6 +429,13 @@ function downloadOutput() {
 }
 
 async function loadRules() {
+  if (window.location.protocol === "file:") {
+    const { rules } = parseRules(DEFAULT_RULES_TEXT);
+    RULES = rules;
+    setLoadStatus("Otworzono z file:// — używane domyślne reguły.");
+    return;
+  }
+
   try {
     const res = await fetch("rules.txt", { cache: "no-store" });
     const raw = await res.text();
@@ -246,18 +446,27 @@ async function loadRules() {
     }
   } catch (e) {
     console.error("Could not load rules.txt", e);
-    RULES = [];
+    const { rules } = parseRules(DEFAULT_RULES_TEXT);
+    RULES = rules;
+    setLoadStatus("Nie można wczytać rules.txt — używane domyślne reguły.");
   }
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-  await loadRules();
+  populateDepartmentSelect("Wczytywanie działów…");
+  populateProcedureSelect("");
+  await Promise.all([loadRules(), loadProcedures()]);
+  document.getElementById("department").addEventListener("change", (e) => populateProcedureSelect(e.target.value));
+  document.getElementById("procedure").addEventListener("change", handleProcedureChange);
   document.getElementById("generateBtn").addEventListener("click", generate);
   document.getElementById("copyBtn").addEventListener("click", copyOutput);
   document.getElementById("downloadBtn").addEventListener("click", downloadOutput);
   document.getElementById("resetBtn").addEventListener("click", () => {
     document.getElementById("patientForm").reset();
-    document.getElementById("reportBody").innerHTML = '<span class="empty">Fill in patient data and click "Generate note" to produce text here.</span>';
+    document.getElementById("reportBody").innerHTML = '<span class="empty">Wypełnij dane pacjenta i kliknij "Generuj notatkę", aby wygenerować tekst tutaj.</span>';
     document.getElementById("tagRow").innerHTML = "";
+    document.getElementById("otherProcedureGroup").style.display = "none";
+    populateDepartmentSelect();
+    populateProcedureSelect("");
   });
 });
