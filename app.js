@@ -66,9 +66,16 @@ Tamsulozyna | tamsulozyna | Alfa-blokery
 Bumetanid | bumetanid | Diuretyki
 Candesartan | candesartan | ARB`;
 
+const DEFAULT_GENERAL_RECOMMENDATIONS = [
+  "Zakaz picia alkoholu na 72 godziny przed zabiegiem",
+  "Zakaz palenie/waporyzacji na 48 godzin przed zabiegiem",
+  "Karencja pokarmowa – zakaz przyjęcia pokarmów stałych i płynnych na 6 godzin przed zabiegiem",
+  "Dozwolone picie wody niegazowanej do 2 godzin przed zabiegiem.",
+];
+
 const REPORT_TEMPLATE = `Konsultacja Anestezjologiczna
 [Patient_Gendered] [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
-Dział [Department]. Zabieg [Operation]
+Zabieg [Operation]
 Ukł. Nerwowy: [Neurological_Orientation] auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]
 Ukł. Oddechowy: wydolny, [Respiratory_Rate] RR/min, saturacja [Saturation]%. Osłuchowo [Lung_Auscultation]
 Ukł. Krążenia: wydolny, tony serca w normie . BP [Blood_Preasure] , [Heart_Rate] /min. Arytmia - [Arytmia]. Obrzęki obwodowe - [Oedema]
@@ -78,19 +85,25 @@ Współistniejące choroby:
 
 Przyjmowane leki : [Medications]
 
+Przebyte zabiegi:
+[Previous_Procedures]
+
 Uczulenia - [Alergie]
 Palenia/Waporyzacja [Smoking]
 Alkohol/Substancje psychoaktywne [Drugs]
 
 Wynik konsultacji:
 [Qualification_Result]
-
 Skala ASA - [ASA_Scale], Skala Mallapathi - [Mallampathi_Scale], ruchomość szyi [Neck_Mobility],  zęby - [Teeth_condition]
-Zalecenia:
-[Recomendation_General]
 
-Leki:
-[Recomendation_Medication]`;
+Leki odstawic w dzień zabiegu:
+[Recomendation_Medication_Stop]
+
+Leki przyjąć w dzień zabiegu:
+[Recomendation_Medication_Take]
+
+Zalecenia:
+[Recomendation_General]`;
 
 function getValue(id) {
   const element = document.getElementById(id);
@@ -99,6 +112,94 @@ function getValue(id) {
 
 function formatField(value) {
   return value == null ? "" : String(value);
+}
+
+function clearValidationState() {
+  document.querySelectorAll(".invalid-field").forEach((el) => el.classList.remove("invalid-field"));
+}
+
+function markFieldInvalid(element) {
+  if (!element) return;
+  element.classList.add("invalid-field");
+}
+
+function markFieldById(id) {
+  const element = document.getElementById(id);
+  if (element) markFieldInvalid(element);
+}
+
+function validateForm() {
+  clearValidationState();
+  const invalidFields = [];
+  const age = getValue("age");
+  const sex = getValue("sex");
+  const department = getValue("department");
+  const procedure = getValue("procedure");
+  const otherDepartment = getValue("otherDepartment");
+  const otherProcedure = getValue("otherProcedure");
+  const mass = getValue("mass");
+  const height = getValue("height");
+  const respiratoryRate = getValue("respiratoryRate");
+  const saturation = getValue("saturation");
+  const auscultationGeneral = getValue("auscultationGeneral");
+  const neurologicalSigns = getValue("neurologicalSigns");
+  const bloodPressure = getValue("bloodPressure");
+  const heartRate = getValue("heartRate");
+  const arytmia = getValue("arytmia");
+  const oedema = getValue("oedema");
+  const disease = getValue("disease");
+  const qualificationStatus = getValue("qualificationStatus");
+  const qualificationRisk = getValue("qualificationRisk");
+  const qualificationCondition = getValue("qualificationCondition");
+
+  if (!age) { invalidFields.push("age"); markFieldById("age"); }
+  if (!sex) { invalidFields.push("sex"); markFieldById("sex"); }
+  if (!department) { invalidFields.push("department"); markFieldById("department"); }
+  if (department === "__other__" && !otherDepartment) { invalidFields.push("otherDepartment"); markFieldById("otherDepartment"); }
+  if (!procedure) { invalidFields.push("procedure"); markFieldById("procedure"); }
+  if (procedure === "__other__" && !otherProcedure) { invalidFields.push("otherProcedure"); markFieldById("otherProcedure"); }
+  if (!mass) { invalidFields.push("mass"); markFieldById("mass"); }
+  if (!height) { invalidFields.push("height"); markFieldById("height"); }
+  if (!respiratoryRate) { invalidFields.push("respiratoryRate"); markFieldById("respiratoryRate"); }
+  if (!saturation) { invalidFields.push("saturation"); markFieldById("saturation"); }
+  if (!auscultationGeneral) { invalidFields.push("auscultationGeneral"); markFieldById("auscultationGeneral"); }
+  if (!neurologicalSigns) { invalidFields.push("neurologicalSigns"); markFieldById("neurologicalSigns"); }
+  if (!bloodPressure) { invalidFields.push("bloodPressure"); markFieldById("bloodPressure"); }
+  if (!heartRate) { invalidFields.push("heartRate"); markFieldById("heartRate"); }
+  if (!arytmia) { invalidFields.push("arytmia"); markFieldById("arytmia"); }
+  if (!oedema) { invalidFields.push("oedema"); markFieldById("oedema"); }
+  if (!disease) { invalidFields.push("disease"); markFieldById("disease"); }
+  if (!qualificationStatus) { invalidFields.push("qualificationStatus"); markFieldById("qualificationStatus"); }
+
+  if (qualificationStatus === "qualified" || qualificationStatus === "partial") {
+    if (!qualificationRisk) { invalidFields.push("qualificationRisk"); markFieldById("qualificationRisk"); }
+  }
+
+  if (qualificationStatus === "partial") {
+    if (!qualificationCondition) { invalidFields.push("qualificationCondition"); markFieldById("qualificationCondition"); }
+  }
+
+  if (qualificationStatus && qualificationStatus !== "not-qualified") {
+    const selectedTypes = getSelectedQualificationTypeValues();
+    if (!selectedTypes.length) {
+      const wrapper = document.querySelector(".multiple-checkboxes");
+      if (wrapper) wrapper.classList.add("invalid-field");
+      invalidFields.push("qualificationTypeOption");
+    }
+  }
+
+  if (auscultationGeneral === "nieprawidłowy") {
+    if (!getValue("auscultationFinding")) { invalidFields.push("auscultationFinding"); markFieldById("auscultationFinding"); }
+    if (!getValue("auscultationLocation")) { invalidFields.push("auscultationLocation"); markFieldById("auscultationLocation"); }
+    if (!getValue("auscultationDetail")) { invalidFields.push("auscultationDetail"); markFieldById("auscultationDetail"); }
+  }
+
+  if (invalidFields.length) {
+    const firstInvalid = document.querySelector(".invalid-field");
+    firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  return invalidFields.length === 0;
 }
 
 const AUSCULTATION_LOCATION_TEXT = {
@@ -236,44 +337,78 @@ function getQualificationAdjective(sex, isNegative = false) {
   return isNegative ? "niezakwalifikowany/a" : "zakwalifikowany/a";
 }
 
-function getQualificationTypeText(type, customType) {
-  const selectedType = customType && type === "__other__" ? customType.trim() : type;
-  const typeText = {
-    ogólne: "znieczulenia ogólnego",
-    ogólne_intubacja: "znieczulenia ogólnego z intubacją",
-    ogólne_bez_intubacji: "znieczulenia ogólnego bez intubacji",
-    przewodowe: "znieczulenia przewodowego",
-    regionalne: "znieczulenia regionalnego",
-    blokada: "blokady nerwów obwodowych",
-    sedacja: "analgo-sedacji z nadzorem anestezjologicznym",
-  }[selectedType] || selectedType || "znieczulenia";
+const QUALIFICATION_TYPE_TEXT = {
+  ogólne: "znieczulenia ogólnego",
+  ogólne_intubacja: "znieczulenia ogólnego z intubacją",
+  ogólne_bez_intubacji: "znieczulenia ogólnego bez intubacji",
+  przewodowe: "znieczulenia przewodowego",
+  regionalne: "znieczulenia regionalnego",
+  blokada: "blokady nerwów obwodowych",
+  sedacja: "analgo-sedacji z nadzorem anestezjologicznym",
+  miejscowe: "znieczulenia miejscowego",
+};
 
-  return typeText;
+function getSelectedQualificationTypeValues() {
+  return Array.from(document.querySelectorAll('input[name="qualificationTypeOption"]:checked'))
+    .map((input) => input.value);
+}
+
+function getSelectedQualificationTypeText() {
+  const selectedValues = getSelectedQualificationTypeValues();
+  const customType = getValue("qualificationTypeCustom");
+  const texts = [];
+
+  selectedValues.forEach((value) => {
+    if (value === "__other__") {
+      if (customType) {
+        texts.push(customType);
+      }
+      return;
+    }
+    if (QUALIFICATION_TYPE_TEXT[value]) {
+      texts.push(QUALIFICATION_TYPE_TEXT[value]);
+    }
+  });
+
+  if (!texts.length) {
+    return ["znieczulenia"];
+  }
+
+  if (texts.length === 1) {
+    return texts;
+  }
+
+  const last = texts[texts.length - 1];
+  return [
+    `${texts.slice(0, -1).join(", ")} i ${last}`,
+  ];
 }
 
 function getQualificationText(sex) {
   const status = getValue("qualificationStatus");
   const risk = getValue("qualificationRisk");
-  const type = getValue("qualificationType");
-  const customType = getValue("qualificationTypeCustom");
   const condition = getValue("qualificationCondition");
 
+  const typeTexts = getSelectedQualificationTypeText();
+  const typeText = typeTexts.join(", ");
+  const riskText = risk === "wysokie"
+    ? "wysokim ryzykiem powikłań"
+    : risk === "średnie"
+      ? "średnim ryzykiem powikłań"
+      : "niskim ryzykiem powikłań";
+
   if (status === "partial") {
-    return condition
-      ? `warunkowo — ${condition}`
-      : "warunkowo";
+    let message = `${getQualificationAdjective(sex)} warunkowo do ${typeText} z ${riskText}`;
+    if (condition) {
+      message += `, warunkiem jest ${condition}`;
+    }
+    return message;
   }
 
   if (status === "not-qualified") {
     return `${getQualificationAdjective(sex, true)} do znieczulenia`;
   }
 
-  const typeText = getQualificationTypeText(type, customType);
-  const riskText = risk === "wysokie"
-    ? "wysokim ryzykiem powikłań"
-    : risk === "średnie"
-      ? "średnim ryzykiem powikłań"
-      : "niskim ryzykiem powikłań";
   return `${getQualificationAdjective(sex)} do ${typeText} z ${riskText}`;
 }
 
@@ -528,6 +663,7 @@ async function loadMedications() {
   if (window.location.protocol === "file:") {
     MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
     populateMedicationSuggestions();
+    setLoadStatus("Otworzono z file:// — używane domyślne leki. Jeśli chcesz, możesz wczytać lokalny medications.txt.");
     return;
   }
 
@@ -538,13 +674,130 @@ async function loadMedications() {
     if (!MEDICATIONS_DB.length) {
       console.warn("medications.txt loaded but no entries were parsed. Falling back to default medication list.");
       MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
+      setLoadStatus("medications.txt zawiera nieprawidłowy format — używane domyślne leki.");
     }
     populateMedicationSuggestions();
   } catch (e) {
     console.error("Could not load medications.txt", e);
     MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
     populateMedicationSuggestions();
+    setLoadStatus("Nie można wczytać medications.txt — używane domyślne leki. Możesz wczytać plik lokalny ręcznie.");
   }
+}
+
+function loadLocalMedicationsFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const raw = reader.result;
+    const parsed = parseMedicationsTxt(raw);
+    if (!parsed.length) {
+      setLoadStatus("Wybrano plik medications.txt, ale nie udało się sparsować danych. Używane domyślne leki.");
+      MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
+    } else {
+      MEDICATIONS_DB = parsed;
+      setLoadStatus("Wczytano lokalny plik medications.txt.");
+    }
+    populateMedicationSuggestions();
+  };
+  reader.onerror = () => {
+    setLoadStatus("Nie udało się odczytać wybranego pliku medications.txt.");
+    MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
+    populateMedicationSuggestions();
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+function initializeLocalMedicationLoader() {
+  const fileInput = document.getElementById("medicationsFile");
+  if (!fileInput) return;
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    loadLocalMedicationsFile(file);
+  });
+}
+
+function createPreviousProcedureRow() {
+  const row = document.createElement("div");
+  row.className = "previous-procedure-row";
+  row.innerHTML = `
+    <input type="text" class="previous-procedure-operation" placeholder="Rodzaj zabiegu" />
+    <input type="text" class="previous-procedure-year" placeholder="Rok" />
+    <input type="text" class="previous-procedure-anesthesia" placeholder="Rodzaj znieczulenia" />
+    <button type="button" class="remove-procedure btn secondary" title="Usuń zabieg">×</button>
+  `;
+  const removeButton = row.querySelector(".remove-procedure");
+  removeButton?.addEventListener("click", () => {
+    const section = document.getElementById("previousProceduresSection");
+    if (!section) return;
+    const rows = section.querySelectorAll(".previous-procedure-row");
+    if (rows.length > 1) {
+      row.remove();
+    } else {
+      row.querySelectorAll("input").forEach((input) => { input.value = ""; });
+    }
+  });
+  return row;
+}
+
+function addPreviousProcedureRow() {
+  const section = document.getElementById("previousProceduresSection");
+  if (!section) return;
+  section.appendChild(createPreviousProcedureRow());
+}
+
+function initializePreviousProcedures() {
+  const addButton = document.getElementById("addProcedureBtn");
+  if (!addButton) return;
+  addButton.addEventListener("click", addPreviousProcedureRow);
+
+  const section = document.getElementById("previousProceduresSection");
+  section?.querySelectorAll(".remove-procedure").forEach((button) => {
+    button.addEventListener("click", () => {
+      const row = button.closest(".previous-procedure-row");
+      if (!row) return;
+      const rows = section.querySelectorAll(".previous-procedure-row");
+      if (rows.length > 1) {
+        row.remove();
+      } else {
+        row.querySelectorAll("input").forEach((input) => { input.value = ""; });
+      }
+    });
+  });
+}
+
+function getPreviousProcedures() {
+  return Array.from(document.querySelectorAll(".previous-procedure-row"))
+    .map((row) => ({
+      operation: (row.querySelector(".previous-procedure-operation")?.value || "").trim(),
+      year: (row.querySelector(".previous-procedure-year")?.value || "").trim(),
+      anesthesia: (row.querySelector(".previous-procedure-anesthesia")?.value || "").trim(),
+    }))
+    .filter((item) => item.operation || item.year || item.anesthesia);
+}
+
+function resetPreviousProcedures() {
+  const section = document.getElementById("previousProceduresSection");
+  if (!section) return;
+  section.innerHTML = "";
+  section.appendChild(createPreviousProcedureRow());
+}
+
+function formatPreviousProcedures(previousProcedures) {
+  return previousProcedures
+    .map((item) => {
+      const parts = [];
+      if (item.year) parts.push(item.year);
+      if (item.operation) parts.push(item.operation);
+      let line = parts.join(" – ");
+      if (item.anesthesia) {
+        line += line ? ` (${item.anesthesia})` : item.anesthesia;
+      }
+      return line;
+    })
+    .filter(Boolean)
+    .join("\n");
 }
 
 function getMedicationDisplayText(rawInput) {
@@ -561,10 +814,7 @@ function getMedicationDisplayText(rawInput) {
       if (!match) return entry;
 
       const substancesText = match.activeSubstances.length ? match.activeSubstances.join(", ") : "";
-      const typeText = match.type ? match.type : "";
-      const detailParts = [substancesText, typeText].filter(Boolean);
-      const detailsText = detailParts.length ? detailParts.join("; ") : "";
-      return detailsText ? `${entry} (${detailsText})` : entry;
+      return substancesText ? `${entry} (${substancesText})` : entry;
     })
     .join(", ");
 }
@@ -667,6 +917,7 @@ function collectFormData() {
   const asaEmergency = document.getElementById("asaEmergency")?.checked;
   const asaScale = `ASA ${asaValue}${asaEmergency ? " E" : ""}`;
 
+  const previousProcedures = getPreviousProcedures();
   const fields = {
     ...genderFields,
     Age: getValue("age"),
@@ -674,6 +925,7 @@ function collectFormData() {
     Height: getValue("height"),
     Department: selectedDepartment,
     Operation: otherProcedure || procedure,
+    Previous_Procedures: formatPreviousProcedures(previousProcedures),
     Neurological_Signs: getValue("neurologicalSigns"),
     Respiratory_Rate: getValue("respiratoryRate"),
     Saturation: getValue("saturation"),
@@ -692,11 +944,30 @@ function collectFormData() {
     Mallampathi_Scale: getValue("mallampathiScale"),
     Neck_Mobility: getValue("neckMobility"),
     Teeth_condition: getValue("teethCondition"),
+    Selected_Standard_Recommendations: getSelectedStandardRecommendations(),
     Recomendation_General: getValue("recommendationGeneral"),
-    Recomendation_Medication: getValue("recommendationMedication"),
+    Recomendation_Medication_Stop: getValue("recommendationMedicationStop"),
+    Recomendation_Medication_Take: getValue("recommendationMedicationTake"),
   };
 
   return { age, sex, illnesses, medications: medicationEntries, fields };
+}
+
+function getSelectedStandardRecommendations() {
+  const items = [];
+  if (document.getElementById("includeStandardRecommendation1")?.checked) {
+    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[0]);
+  }
+  if (document.getElementById("includeStandardRecommendation2")?.checked) {
+    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[1]);
+  }
+  if (document.getElementById("includeStandardRecommendation3")?.checked) {
+    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[2]);
+  }
+  if (document.getElementById("includeStandardRecommendation4")?.checked) {
+    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[3]);
+  }
+  return items;
 }
 
 function buildReportText(data, results) {
@@ -705,13 +976,25 @@ function buildReportText(data, results) {
   results.ADD_WARNING.forEach((text) => generated.push(`Ostrzeżenie: ${text}`));
   results.ADD_NOTE.forEach((text) => generated.push(`Uwaga: ${text}`));
 
-  const generalRecs = data.fields.Recomendation_General.trim() ? [data.fields.Recomendation_General.trim()] : [];
+  const generalRecs = [];
+  if (data.fields.Selected_Standard_Recommendations.length) {
+    generalRecs.push(...data.fields.Selected_Standard_Recommendations);
+  }
+  if (data.fields.Recomendation_General.trim()) {
+    if (generalRecs.length) generalRecs.push(data.fields.Recomendation_General.trim());
+    else generalRecs.push(data.fields.Recomendation_General.trim());
+  }
   if (generated.length) {
-    if (generalRecs.length) generalRecs.push("");
-    generalRecs.push("=== Automatyczne zalecenia ===", ...generated);
+    if (generalRecs.length) generalRecs.push("=== Automatyczne zalecenia ===");
+    generalRecs.push(...generated);
   }
 
-  const filledFields = { ...data.fields, Recomendation_General: generalRecs.join("\n") };
+  const filledFields = {
+    ...data.fields,
+    Recomendation_General: generalRecs.join("\n"),
+    Recomendation_Medication_Stop: data.fields.Recomendation_Medication_Stop,
+    Recomendation_Medication_Take: data.fields.Recomendation_Medication_Take,
+  };
   return fillTemplate(REPORT_TEMPLATE, filledFields);
 }
 
@@ -733,11 +1016,13 @@ function renderTags(results) {
 }
 
 function generate() {
+  validateForm();
+
   const data = collectFormData();
   const results = runRules(RULES, data);
   const text = buildReportText(data, results);
   const body = document.getElementById("reportBody");
-  body.textContent = text;
+  if (body) body.textContent = text;
   renderTags(results);
 }
 
@@ -799,10 +1084,10 @@ function handleDepartmentChange() {
 }
 
 function toggleQualificationTypeCustom() {
-  const qualificationType = document.getElementById("qualificationType");
+  const qualificationTypeOther = document.querySelector('input[name="qualificationTypeOption"][value="__other__"]');
   const qualificationTypeCustomGroup = document.getElementById("qualificationTypeCustomGroup");
-  if (!qualificationType || !qualificationTypeCustomGroup) return;
-  qualificationTypeCustomGroup.style.display = qualificationType.value === "__other__" ? "block" : "none";
+  if (!qualificationTypeOther || !qualificationTypeCustomGroup) return;
+  qualificationTypeCustomGroup.style.display = qualificationTypeOther.checked ? "block" : "none";
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -811,6 +1096,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   await Promise.all([loadRules(), loadProcedures(), loadMedications()]);
   document.getElementById("department").addEventListener("change", handleDepartmentChange);
   document.getElementById("procedure").addEventListener("change", handleProcedureChange);
+  initializeLocalMedicationLoader();
+  initializePreviousProcedures();
   const auscultationGeneral = document.getElementById("auscultationGeneral");
   const auscultationFinding = document.getElementById("auscultationFinding");
   const auscultationLocation = document.getElementById("auscultationLocation");
@@ -818,7 +1105,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   const qualificationStatus = document.getElementById("qualificationStatus");
   const qualificationQualifiedBlock = document.getElementById("qualificationQualifiedBlock");
   const qualificationPartialBlock = document.getElementById("qualificationPartialBlock");
-  const qualificationType = document.getElementById("qualificationType");
   const qualificationTypeCustom = document.getElementById("qualificationTypeCustom");
   const asaEmergency = document.getElementById("asaEmergency");
   const medicationsList = document.getElementById("medicationsList");
@@ -839,7 +1125,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (qualificationStatus) {
     qualificationStatus.addEventListener("change", () => {
       if (qualificationQualifiedBlock && qualificationPartialBlock) {
-        const showQualified = qualificationStatus.value === "qualified";
+        const showQualified = qualificationStatus.value === "qualified" || qualificationStatus.value === "partial";
         qualificationQualifiedBlock.style.display = showQualified ? "block" : "none";
         qualificationPartialBlock.style.display = qualificationStatus.value === "partial" ? "block" : "none";
       }
@@ -847,12 +1133,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  if (qualificationType) {
-    qualificationType.addEventListener("change", () => {
+  const qualificationTypeOptions = document.querySelectorAll('input[name="qualificationTypeOption"]');
+  qualificationTypeOptions.forEach((option) => {
+    option.addEventListener("change", () => {
       toggleQualificationTypeCustom();
       generate();
     });
-  }
+  });
 
   if (qualificationTypeCustom) {
     qualificationTypeCustom.addEventListener("input", generate);
@@ -886,13 +1173,17 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (qualificationStatusReset) {
       qualificationStatusReset.value = "qualified";
     }
-    const qualificationTypeReset = document.getElementById("qualificationType");
-    if (qualificationTypeReset) {
-      qualificationTypeReset.value = "ogólne";
-    }
+    const qualificationTypeOptionsReset = document.querySelectorAll('input[name="qualificationTypeOption"]');
+    qualificationTypeOptionsReset.forEach((option) => {
+      option.checked = option.value === "ogólne";
+    });
     const qualificationTypeCustomReset = document.getElementById("qualificationTypeCustom");
     if (qualificationTypeCustomReset) {
       qualificationTypeCustomReset.value = "";
+    }
+    const qualificationRiskReset = document.getElementById("qualificationRisk");
+    if (qualificationRiskReset) {
+      qualificationRiskReset.value = "niskie";
     }
     const asaScaleValueReset = document.getElementById("asaScaleValue");
     if (asaScaleValueReset) {
@@ -932,5 +1223,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     populateAuscultationDetails();
     populateDepartmentSelect();
     populateProcedureSelect("");
+    resetPreviousProcedures();
   });
 });

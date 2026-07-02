@@ -117,6 +117,36 @@ a { color: var(--teal-light); }
   margin-bottom: 4px;
 }
 
+.previous-procedures-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.previous-procedures {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.previous-procedure-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(100px, 0.9fr) minmax(140px, 1.2fr) auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.previous-procedure-row input {
+  width: 100%;
+}
+
+.previous-procedure-row .remove-procedure {
+  min-width: 44px;
+  padding: 0 10px;
+}
+
 label {
   display: block;
   font-size: 12.5px;
@@ -151,6 +181,17 @@ input[type="text"], input[type="number"], select {
   font-family: inherit;
   background: #fff;
   color: var(--ink);
+}
+
+.invalid-field {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px rgba(140, 47, 47, 0.12);
+}
+
+.multiple-checkboxes.invalid-field {
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 0.7rem;
 }
 
 .medication-input {

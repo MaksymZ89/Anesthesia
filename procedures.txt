@@ -17,10 +17,10 @@ Rekonstrukcja więzadła krzyżowego przedniego
 Osteotomia piszczeli
 Operacja zęba trzonowego
 
-Dział: Ginekologia
-Histerektomia
-Laparo- i histeroskopowe wycięcie mięśniaka
-Cesarskie cięcie
+Dział: Okulistyka
+Zaćma oko prawe i lewe
+Zaćma oko prawe
+Zaćma oko lewe
 Operacja laparoskopowa guza jajnika
 
 Dział: Urologia

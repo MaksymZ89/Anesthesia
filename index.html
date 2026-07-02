@@ -32,8 +32,7 @@
           <div>
             <label for="sex">Płeć</label>
             <select id="sex">
-              <option value="">Wybierz…</option>
-              <option value="male" selected>Mężczyzna</option>
+                <option value="male" selected>Mężczyzna</option>
               <option value="female">Kobieta</option>
             </select>
           </div>
@@ -85,7 +84,7 @@
         <div class="auscultation-block">
           <label for="auscultationGeneral">Osłuchowo</label>
           <select id="auscultationGeneral">
-            <option value="prawidłowy">Prawidłowy — bez odchyleń</option>
+            <option value="prawidłowy" selected>Prawidłowy — bez odchyleń</option>
             <option value="nieprawidłowy">Nieprawidłowy — odchylenia obecne</option>
           </select>
 
@@ -154,6 +153,23 @@
         <label for="medicationsList">Leki przyjmowane obecnie</label>
         <input type="text" id="medicationsList" class="free-text medication-input" placeholder="np. Metformina, Enalapril" autocomplete="off" />
         <div id="medicationSuggestionsBox" class="medication-suggestions" role="listbox" aria-label="Sugestie leków"></div>
+        <label for="medicationsFile">Wczytaj lokalny medications.txt</label>
+        <input type="file" id="medicationsFile" accept=".txt" />
+
+        <label>Zabiegi</label>
+        <div class="previous-procedures-header">
+          <span>Dodaj zabiegi przebyte przez pacjenta</span>
+          <button type="button" id="addProcedureBtn" class="btn secondary">+ Dodaj zabieg</button>
+        </div>
+        <div id="previousProceduresSection" class="previous-procedures">
+          <div class="previous-procedure-row">
+            <input type="text" class="previous-procedure-operation" placeholder="Rodzaj zabiegu" />
+            <input type="text" class="previous-procedure-year" placeholder="Rok" />
+            <input type="text" class="previous-procedure-anesthesia" placeholder="Rodzaj znieczulenia" />
+            <button type="button" class="remove-procedure btn secondary" title="Usuń zabieg">×</button>
+          </div>
+        </div>
+
         <label for="allergies">Alergie</label>
         <input type="text" id="allergies" placeholder="np. penicylina, lateks" value="brak" />
         <div class="field-row">
@@ -173,23 +189,24 @@
         <div class="auscultation-block">
           <label for="qualificationStatus">Wynik konsultacji</label>
           <select id="qualificationStatus">
-            <option value="qualified">Zakwalifikowany/a</option>
+            <option value="qualified" selected>Zakwalifikowany/a</option>
             <option value="partial">Warunkowo</option>
             <option value="not-qualified">Niezakwalifikowany/a</option>
           </select>
 
           <div id="qualificationQualifiedBlock" class="auscultation-details" style="display:block;">
-            <label for="qualificationType">Rodzaj znieczulenia</label>
-            <select id="qualificationType">
-              <option value="ogólne">Znieczulenie ogólne</option>
-              <option value="ogólne_intubacja">Znieczulenie ogólne z intubacją</option>
-              <option value="ogólne_bez_intubacji">Znieczulenie ogólne bez intubacji</option>
-              <option value="przewodowe">Znieczulenie przewodowe</option>
-              <option value="regionalne">Znieczulenie regionalne</option>
-              <option value="blokada">Blokada nerwów obwodowych</option>
-              <option value="sedacja">Analgo-sedacja z nadzorem anestezjologicznym</option>
-              <option value="__other__">Inny rodzaj…</option>
-            </select>
+            <label>Rodzaj znieczulenia</label>
+            <div class="multiple-checkboxes" style="display:grid; gap:0.4rem; margin-bottom:0.5rem;">
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="ogólne" style="margin-right:0.5rem;" /><span>Znieczulenie ogólne</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="ogólne_intubacja" style="margin-right:0.5rem;" /><span>Znieczulenie ogólne z intubacją</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="ogólne_bez_intubacji" style="margin-right:0.5rem;" /><span>Znieczulenie ogólne bez intubacji</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="przewodowe" style="margin-right:0.5rem;" /><span>Znieczulenie przewodowe</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="regionalne" style="margin-right:0.5rem;" /><span>Znieczulenie regionalne</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="blokada" style="margin-right:0.5rem;" /><span>Blokada nerwów obwodowych</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="sedacja" style="margin-right:0.5rem;" /><span>Analgo-sedacja z nadzorem anestezjologicznym</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="miejscowe" style="margin-right:0.5rem;" /><span>Znieczulenie miejscowe</span></label>
+              <label class="check-item"><input type="checkbox" name="qualificationTypeOption" value="__other__" id="qualificationTypeOther" style="margin-right:0.5rem;" /><span>Inny rodzaj…</span></label>
+            </div>
             <div id="qualificationTypeCustomGroup" style="display:none; margin-top:0.25rem;">
               <label for="qualificationTypeCustom">Własny opis znieczulenia</label>
               <input type="text" id="qualificationTypeCustom" placeholder="np. znieczulenie do sedacji monitorowanej" />
@@ -197,9 +214,9 @@
 
             <label for="qualificationRisk">Ryzyko powikłań</label>
             <select id="qualificationRisk">
-              <option value="niskie">Niskie</option>
+              <option value="niskie" selected>Niskie</option>
               <option value="średnie">Średnie</option>
-              <option value="wysokie" selected>Wysokie</option>
+              <option value="wysokie">Wysokie</option>
             </select>
           </div>
 
@@ -212,7 +229,7 @@
           <div>
             <label for="asaScaleValue">Skala ASA</label>
             <select id="asaScaleValue">
-              <option value="I">I</option>
+              <option value="I" selected>I</option>
               <option value="II">II</option>
               <option value="III">III</option>
               <option value="IV">IV</option>
@@ -222,7 +239,7 @@
           <div>
             <label for="mallampathiScale">Skala Mallampathi</label>
             <select id="mallampathiScale">
-              <option value="I">I</option>
+              <option value="I" selected>I</option>
               <option value="II">II</option>
               <option value="III">III</option>
               <option value="IV">IV</option>
@@ -242,13 +259,22 @@
           </div>
           <div>
             <label for="teethCondition">Zęby</label>
-            <input type="text" id="teethCondition" placeholder="np. w dobrym stanie" value="sanowane" />
+            <input type="text" id="teethCondition" placeholder="np. w dobrym stanie" value="sanowane, bez protezów" />
           </div>
         </div>
+        <label for="recommendationMedicationStop">Leki do odstawienia</label>
+        <textarea id="recommendationMedicationStop" class="free-text" placeholder="np. odstawić aspirinę na 7 dni przed zabiegiem" rows="3"></textarea>
+        <label for="recommendationMedicationTake">Leki do przyjęcia</label>
+        <textarea id="recommendationMedicationTake" class="free-text" placeholder="np. przyjąć beta-bloker wieczorem" rows="3"></textarea>
+        <fieldset style="border:1px solid #ddd; padding:0.8rem; margin-top:0.75rem; border-radius:6px;">
+          <legend style="font-weight:600; margin-bottom:0.5rem;">Standardowe zalecenia przedoperacyjne</legend>
+          <label class="check-item"><input type="checkbox" id="includeStandardRecommendation1" checked style="margin-right: 0.5rem;" /><span>Zakaz picia alkoholu na 72 godziny przed zabiegiem</span></label>
+          <label class="check-item"><input type="checkbox" id="includeStandardRecommendation2" checked style="margin-right: 0.5rem;" /><span>Zakaz palenie/waporyzacji na 48 godzin przed zabiegiem</span></label>
+          <label class="check-item"><input type="checkbox" id="includeStandardRecommendation3" checked style="margin-right: 0.5rem;" /><span>Karencja pokarmowa – zakaz przyjęcia pokarmów stałych i płynnych na 6 godzin przed zabiegiem</span></label>
+          <label class="check-item"><input type="checkbox" id="includeStandardRecommendation4" checked style="margin-right: 0.5rem;" /><span>Dozwolone picie wody niegazowanej do 2 godzin przed zabiegiem</span></label>
+        </fieldset>
         <label for="recommendationGeneral">Zalecenia ogólne</label>
         <textarea id="recommendationGeneral" class="free-text" placeholder="np. zachować poziom glikemii" rows="3"></textarea>
-        <label for="recommendationMedication">Leki</label>
-        <textarea id="recommendationMedication" class="free-text" placeholder="np. kontynuować beta-blokery" rows="3"></textarea>
       </div>
 
       <div class="btn-row">
