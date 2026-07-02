@@ -151,6 +151,9 @@
         <p class="section-label">Historia i czynniki ryzyka</p>
         <label for="disease">Współistniejące choroby (opis)</label>
         <textarea id="disease" class="free-text" placeholder="np. cukrzyca, wcześniejszy udar">neguje</textarea>
+        <label for="medicationsList">Leki przyjmowane obecnie</label>
+        <input type="text" id="medicationsList" class="free-text medication-input" placeholder="np. Metformina, Enalapril" autocomplete="off" />
+        <div id="medicationSuggestionsBox" class="medication-suggestions" role="listbox" aria-label="Sugestie leków"></div>
         <label for="allergies">Alergie</label>
         <input type="text" id="allergies" placeholder="np. penicylina, lateks" value="brak" />
         <div class="field-row">
@@ -179,10 +182,18 @@
             <label for="qualificationType">Rodzaj znieczulenia</label>
             <select id="qualificationType">
               <option value="ogólne">Znieczulenie ogólne</option>
+              <option value="ogólne_intubacja">Znieczulenie ogólne z intubacją</option>
+              <option value="ogólne_bez_intubacji">Znieczulenie ogólne bez intubacji</option>
               <option value="przewodowe">Znieczulenie przewodowe</option>
+              <option value="regionalne">Znieczulenie regionalne</option>
               <option value="blokada">Blokada nerwów obwodowych</option>
               <option value="sedacja">Analgo-sedacja z nadzorem anestezjologicznym</option>
+              <option value="__other__">Inny rodzaj…</option>
             </select>
+            <div id="qualificationTypeCustomGroup" style="display:none; margin-top:0.25rem;">
+              <label for="qualificationTypeCustom">Własny opis znieczulenia</label>
+              <input type="text" id="qualificationTypeCustom" placeholder="np. znieczulenie do sedacji monitorowanej" />
+            </div>
 
             <label for="qualificationRisk">Ryzyko powikłań</label>
             <select id="qualificationRisk">
@@ -199,13 +210,30 @@
         </div>
         <div class="field-row">
           <div>
-            <label for="asaScale">Skala ASA</label>
-            <input type="text" id="asaScale" placeholder="np. ASA II" value="ASA I" />
+            <label for="asaScaleValue">Skala ASA</label>
+            <select id="asaScaleValue">
+              <option value="I">I</option>
+              <option value="II">II</option>
+              <option value="III">III</option>
+              <option value="IV">IV</option>
+              <option value="V">V</option>
+            </select>
           </div>
           <div>
             <label for="mallampathiScale">Skala Mallampathi</label>
-            <input type="text" id="mallampathiScale" placeholder="np. III" value="I" />
+            <select id="mallampathiScale">
+              <option value="I">I</option>
+              <option value="II">II</option>
+              <option value="III">III</option>
+              <option value="IV">IV</option>
+            </select>
           </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label class="check-item" style="margin-top:0.2rem;"><input type="checkbox" id="asaEmergency" /><span>ASA E</span></label>
+          </div>
+          <div></div>
         </div>
         <div class="field-row">
           <div>
@@ -221,29 +249,6 @@
         <textarea id="recommendationGeneral" class="free-text" placeholder="np. zachować poziom glikemii" rows="3"></textarea>
         <label for="recommendationMedication">Leki</label>
         <textarea id="recommendationMedication" class="free-text" placeholder="np. kontynuować beta-blokery" rows="3"></textarea>
-      </div>
-
-      <div class="card">
-        <p class="section-label">Leki przyjmowane obecnie</p>
-        <fieldset>
-          <div class="check-grid">
-            <label class="check-item"><input type="checkbox" name="medication" value="ACEI"><span>ACE inhibitor</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="ARB"><span>ARB</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Beta blockers"><span>Beta blocker</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Calcium channel blockers"><span>Calcium channel blocker</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Diuretics"><span>Diuretic</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Anticoagulants"><span>Anticoagulant</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Antiplatelets"><span>Antiplatelet</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Insulin"><span>Insulin</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Oral hypoglycemics"><span>Oral hypoglycemic</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Corticosteroids"><span>Corticosteroid</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="NSAIDs"><span>NSAID</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Statins"><span>Statin</span></label>
-            <label class="check-item"><input type="checkbox" name="medication" value="Sedatives/benzodiazepines"><span>Sedative / benzodiazepine</span></label>
-          </div>
-        </fieldset>
-        <label for="otherMedication">Inne (tekst)</label>
-        <textarea id="otherMedication" class="free-text" placeholder="Wpisz inne leki…"></textarea>
       </div>
 
       <div class="btn-row">

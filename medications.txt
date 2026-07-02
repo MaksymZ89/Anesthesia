@@ -1,0 +1,15 @@
+# Medication database
+# Format: Name | Active substances (comma-separated) | Type
+Metformina | metformina | Antyidiabetyki
+Atorwastatyna | atorwastatyna | Statyny
+Enalapril | enalapril | ACEI
+Aspiryna | kwas acetylosalicylowy | NLPZ
+Warfaryna | warfaryna | Antykoagulanty
+Omeprazol | omeprazol | Inhibitory pompy protonowej
+Hydrochlorotiazyd | hydrochlorotiazyd | Diuretyki
+Tamsulozyna | tamsulozyna | Alfa-blokery
+Bumetanid | bumetanid | Diuretyki
+Candesartan | candesartan | ARB
+Betaksolol | betaksolol | Blokery beta
+Metoprolol | metoprolol | Blokery beta
+Amlodypina | amlodypina | Blokery kanałów wapniowych

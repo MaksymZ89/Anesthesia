@@ -153,6 +153,34 @@ input[type="text"], input[type="number"], select {
   color: var(--ink);
 }
 
+.medication-input {
+  background: #fff;
+  color: var(--ink);
+}
+
+.medication-suggestions {
+  display: none;
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  background: #fff;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.medication-suggestion {
+  padding: 9px 10px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.medication-suggestion:hover,
+.medication-suggestion.active {
+  background: #eaf1f0;
+}
+
 input[type="text"]:focus, input[type="number"]:focus, select:focus, button:focus-visible, .check-item input:focus-visible + span {
   outline: 2px solid var(--teal-light);
   outline-offset: 1px;

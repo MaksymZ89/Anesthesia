@@ -10,6 +10,7 @@ const ACTION_LABEL = {
 
 let RULES = [];
 let PROCEDURES_BY_DEPARTMENT = {};
+let MEDICATIONS_DB = [];
 
 const DEFAULT_RULES_TEXT = `# Default rules placeholder — no rules loaded from file.
 # To use project-specific rules, open via a web server instead of file://
@@ -51,6 +52,19 @@ Tympanoplastyka
 Septoplastyka
 Usunięcie migdałków podniebiennych
 Endoskopowa operacja zatok`;
+
+const DEFAULT_MEDICATIONS_TEXT = `# Medication database
+# Format: Name | Active substances | Type
+Metformina | metformina | Antidiabetics
+Atorwastatyna | atorwastatyna | Statyny
+Enalapril | enalapril | ACEI
+Aspiryna | kwas acetylosalicylowy | NLPZ
+Warfarina | warfaryna | Antykoagulanty
+Omeprazol | omeprazol | Inhibitory pompy protonowej
+Hydrochlorotiazyd | hydrochlorotiazyd | Diuretyki
+Tamsulozyna | tamsulozyna | Alfa-blokery
+Bumetanid | bumetanid | Diuretyki
+Candesartan | candesartan | ARB`;
 
 const REPORT_TEMPLATE = `Konsultacja Anestezjologiczna
 [Patient_Gendered] [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
@@ -210,10 +224,38 @@ function getAuscultationText() {
   return sentence.replace(/\s+/g, " ").trim();
 }
 
-function getQualificationText() {
+function getQualificationAdjective(sex, isNegative = false) {
+  if (sex === "female") {
+    return isNegative ? "niezakwalifikowana" : "zakwalifikowana";
+  }
+
+  if (sex === "male") {
+    return isNegative ? "niezakwalifikowany" : "zakwalifikowany";
+  }
+
+  return isNegative ? "niezakwalifikowany/a" : "zakwalifikowany/a";
+}
+
+function getQualificationTypeText(type, customType) {
+  const selectedType = customType && type === "__other__" ? customType.trim() : type;
+  const typeText = {
+    ogólne: "znieczulenia ogólnego",
+    ogólne_intubacja: "znieczulenia ogólnego z intubacją",
+    ogólne_bez_intubacji: "znieczulenia ogólnego bez intubacji",
+    przewodowe: "znieczulenia przewodowego",
+    regionalne: "znieczulenia regionalnego",
+    blokada: "blokady nerwów obwodowych",
+    sedacja: "analgo-sedacji z nadzorem anestezjologicznym",
+  }[selectedType] || selectedType || "znieczulenia";
+
+  return typeText;
+}
+
+function getQualificationText(sex) {
   const status = getValue("qualificationStatus");
   const risk = getValue("qualificationRisk");
   const type = getValue("qualificationType");
+  const customType = getValue("qualificationTypeCustom");
   const condition = getValue("qualificationCondition");
 
   if (status === "partial") {
@@ -223,18 +265,16 @@ function getQualificationText() {
   }
 
   if (status === "not-qualified") {
-    return "niezakwalifikowany/a do znieczulenia";
+    return `${getQualificationAdjective(sex, true)} do znieczulenia`;
   }
 
-  const typeText = {
-    ogólne: "znieczulenia ogólnego",
-    przewodowe: "znieczulenia przewodowego",
-    blokada: "blokady nerwów obwodowych",
-    sedacja: "analgo-sedacji z nadzorem anestezjologicznym",
-  }[type] || "znieczulenia";
-
-  const riskText = risk === "wysokie" ? "wysokim ryzykiem powikłań" : `ryzykiem powikłań ${risk}`;
-  return `zakwalifikowany/a do ${typeText} z ${riskText}`;
+  const typeText = getQualificationTypeText(type, customType);
+  const riskText = risk === "wysokie"
+    ? "wysokim ryzykiem powikłań"
+    : risk === "średnie"
+      ? "średnim ryzykiem powikłań"
+      : "niskim ryzykiem powikłań";
+  return `${getQualificationAdjective(sex)} do ${typeText} z ${riskText}`;
 }
 
 function getGenderFields(sex) {
@@ -288,6 +328,86 @@ function parseProceduresTxt(raw) {
   });
 
   return departments;
+}
+
+function parseMedicationsTxt(raw) {
+  const medications = [];
+  const lines = raw.split("\n");
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) return;
+
+    const parts = line.split("|").map((part) => part.trim());
+    if (parts.length < 3) return;
+
+    const [name, activeSubstances, type] = parts;
+    medications.push({
+      name,
+      activeSubstances: activeSubstances
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      type,
+    });
+  });
+
+  return medications;
+}
+
+function populateMedicationSuggestions() {
+  const input = document.getElementById("medicationsList");
+  const suggestionsBox = document.getElementById("medicationSuggestionsBox");
+  if (!input || !suggestionsBox) return;
+
+  const replaceLastToken = (fullValue, replacement) => {
+    const parts = fullValue.split(/[,;\n]+/);
+    const lastPart = parts[parts.length - 1] || "";
+    const prefix = fullValue.slice(0, fullValue.length - lastPart.length);
+    return `${prefix}${replacement}`;
+  };
+
+  const renderSuggestions = (query = "") => {
+    const currentValue = input.value;
+    const lastChunk = currentValue.split(/[,;\n]+/).pop()?.trim() || "";
+    const normalized = lastChunk.toLowerCase();
+    const matches = MEDICATIONS_DB.filter((medication) => medication.name.toLowerCase().includes(normalized));
+
+    suggestionsBox.innerHTML = "";
+    if (!normalized || !matches.length) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    suggestionsBox.style.display = "block";
+    matches.slice(0, 8).forEach((medication, index) => {
+      const option = document.createElement("button");
+      option.type = "button";
+      option.className = `medication-suggestion${index === 0 ? " active" : ""}`;
+      option.textContent = medication.name;
+      option.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        const currentValue = input.value;
+        input.value = replaceLastToken(currentValue, medication.name);
+        suggestionsBox.style.display = "none";
+        generate();
+      });
+      suggestionsBox.appendChild(option);
+    });
+  };
+
+  input.addEventListener("input", () => {
+    renderSuggestions(input.value);
+    generate();
+  });
+
+  input.addEventListener("focus", () => renderSuggestions(input.value));
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".medication-input") && !event.target.closest(".medication-suggestions")) {
+      suggestionsBox.style.display = "none";
+    }
+  });
 }
 
 function populateDepartmentSelect(placeholderText = "Wybierz dział…") {
@@ -404,6 +524,51 @@ async function loadProcedures() {
   }
 }
 
+async function loadMedications() {
+  if (window.location.protocol === "file:") {
+    MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
+    populateMedicationSuggestions();
+    return;
+  }
+
+  try {
+    const res = await fetch("medications.txt", { cache: "no-store" });
+    const raw = await res.text();
+    MEDICATIONS_DB = parseMedicationsTxt(raw);
+    if (!MEDICATIONS_DB.length) {
+      console.warn("medications.txt loaded but no entries were parsed. Falling back to default medication list.");
+      MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
+    }
+    populateMedicationSuggestions();
+  } catch (e) {
+    console.error("Could not load medications.txt", e);
+    MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
+    populateMedicationSuggestions();
+  }
+}
+
+function getMedicationDisplayText(rawInput) {
+  const entries = rawInput
+    .split(/[\n,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  if (!entries.length) return "";
+
+  return entries
+    .map((entry) => {
+      const match = MEDICATIONS_DB.find((medication) => medication.name.toLowerCase() === entry.toLowerCase());
+      if (!match) return entry;
+
+      const substancesText = match.activeSubstances.length ? match.activeSubstances.join(", ") : "";
+      const typeText = match.type ? match.type : "";
+      const detailParts = [substancesText, typeText].filter(Boolean);
+      const detailsText = detailParts.length ? detailParts.join("; ") : "";
+      return detailsText ? `${entry} (${detailsText})` : entry;
+    })
+    .join(", ");
+}
+
 // ---- Rules.txt parser -------------------------------------------------
 // Syntax: IF <field> <op> "<value>" [AND <field> <op> "<value>"]* THEN <ACTION> "<text>"
 function parseRules(raw) {
@@ -482,22 +647,26 @@ function runRules(rules, data) {
 function collectFormData() {
   const age = parseFloat(getValue("age"));
   const sex = getValue("sex");
-  const illnesses = Array.from(document.querySelectorAll('input[name="illness"]:checked')).map((el) => el.value);
-  const medications = Array.from(document.querySelectorAll('input[name="medication"]:checked')).map((el) => el.value);
-  const otherIllness = getValue("otherIllness");
-  const otherMedication = getValue("otherMedication");
+  const illnesses = [];
   const diseaseText = getValue("disease");
   const department = getValue("department");
   const procedure = getValue("procedure");
   const otherDepartment = getValue("otherDepartment");
   const otherProcedure = getValue("otherProcedure");
+  const medicationInput = getValue("medicationsList");
+  const medicationEntries = medicationInput
+    .split(/[\n,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 
-  if (otherIllness) illnesses.push(otherIllness);
   if (diseaseText) illnesses.push(diseaseText);
-  if (otherMedication) medications.push(otherMedication);
 
   const genderFields = getGenderFields(sex);
   const selectedDepartment = department === "__other__" ? (otherDepartment || "Inny dział") : department;
+  const asaValue = getValue("asaScaleValue") || "I";
+  const asaEmergency = document.getElementById("asaEmergency")?.checked;
+  const asaScale = `ASA ${asaValue}${asaEmergency ? " E" : ""}`;
+
   const fields = {
     ...genderFields,
     Age: getValue("age"),
@@ -514,12 +683,12 @@ function collectFormData() {
     Arytmia: getValue("arytmia"),
     Oedema: getValue("oedema"),
     Disease: diseaseText || illnesses.join(", "),
-    Medications: medications.join(", "),
+    Medications: getMedicationDisplayText(medicationInput),
     Alergie: getValue("allergies"),
     Smoking: getValue("smoking"),
     Drugs: getValue("drugs"),
-    Qualification_Result: getQualificationText(),
-    ASA_Scale: getValue("asaScale"),
+    Qualification_Result: getQualificationText(sex),
+    ASA_Scale: asaScale,
     Mallampathi_Scale: getValue("mallampathiScale"),
     Neck_Mobility: getValue("neckMobility"),
     Teeth_condition: getValue("teethCondition"),
@@ -527,7 +696,7 @@ function collectFormData() {
     Recomendation_Medication: getValue("recommendationMedication"),
   };
 
-  return { age, sex, illnesses, medications, fields };
+  return { age, sex, illnesses, medications: medicationEntries, fields };
 }
 
 function buildReportText(data, results) {
@@ -629,10 +798,17 @@ function handleDepartmentChange() {
   handleProcedureChange();
 }
 
+function toggleQualificationTypeCustom() {
+  const qualificationType = document.getElementById("qualificationType");
+  const qualificationTypeCustomGroup = document.getElementById("qualificationTypeCustomGroup");
+  if (!qualificationType || !qualificationTypeCustomGroup) return;
+  qualificationTypeCustomGroup.style.display = qualificationType.value === "__other__" ? "block" : "none";
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   populateDepartmentSelect("Wczytywanie działów…");
   populateProcedureSelect("");
-  await Promise.all([loadRules(), loadProcedures()]);
+  await Promise.all([loadRules(), loadProcedures(), loadMedications()]);
   document.getElementById("department").addEventListener("change", handleDepartmentChange);
   document.getElementById("procedure").addEventListener("change", handleProcedureChange);
   const auscultationGeneral = document.getElementById("auscultationGeneral");
@@ -642,6 +818,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   const qualificationStatus = document.getElementById("qualificationStatus");
   const qualificationQualifiedBlock = document.getElementById("qualificationQualifiedBlock");
   const qualificationPartialBlock = document.getElementById("qualificationPartialBlock");
+  const qualificationType = document.getElementById("qualificationType");
+  const qualificationTypeCustom = document.getElementById("qualificationTypeCustom");
+  const asaEmergency = document.getElementById("asaEmergency");
+  const medicationsList = document.getElementById("medicationsList");
   if (auscultationGeneral) {
     auscultationGeneral.addEventListener("change", () => {
       toggleAuscultationDetails();
@@ -666,8 +846,29 @@ window.addEventListener("DOMContentLoaded", async () => {
       generate();
     });
   }
+
+  if (qualificationType) {
+    qualificationType.addEventListener("change", () => {
+      toggleQualificationTypeCustom();
+      generate();
+    });
+  }
+
+  if (qualificationTypeCustom) {
+    qualificationTypeCustom.addEventListener("input", generate);
+  }
+
+  if (asaEmergency) {
+    asaEmergency.addEventListener("change", generate);
+  }
+
+  if (medicationsList) {
+    medicationsList.addEventListener("input", generate);
+  }
+
   populateAuscultationDetails();
   toggleAuscultationDetails();
+  toggleQualificationTypeCustom();
   document.getElementById("generateBtn").addEventListener("click", generate);
   document.getElementById("copyBtn").addEventListener("click", copyOutput);
   document.getElementById("downloadBtn").addEventListener("click", downloadOutput);
@@ -685,12 +886,37 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (qualificationStatusReset) {
       qualificationStatusReset.value = "qualified";
     }
+    const qualificationTypeReset = document.getElementById("qualificationType");
+    if (qualificationTypeReset) {
+      qualificationTypeReset.value = "ogólne";
+    }
+    const qualificationTypeCustomReset = document.getElementById("qualificationTypeCustom");
+    if (qualificationTypeCustomReset) {
+      qualificationTypeCustomReset.value = "";
+    }
+    const asaScaleValueReset = document.getElementById("asaScaleValue");
+    if (asaScaleValueReset) {
+      asaScaleValueReset.value = "I";
+    }
+    const asaEmergencyReset = document.getElementById("asaEmergency");
+    if (asaEmergencyReset) {
+      asaEmergencyReset.checked = false;
+    }
+    const mallampathiScaleReset = document.getElementById("mallampathiScale");
+    if (mallampathiScaleReset) {
+      mallampathiScaleReset.value = "I";
+    }
+    const medicationInputReset = document.getElementById("medicationsList");
+    if (medicationInputReset) {
+      medicationInputReset.value = "";
+    }
     if (qualificationQualifiedBlock) {
       qualificationQualifiedBlock.style.display = "block";
     }
     if (qualificationPartialBlock) {
       qualificationPartialBlock.style.display = "none";
     }
+    toggleQualificationTypeCustom();
     const details = document.getElementById("auscultationAbnormalBlock");
     if (details) {
       details.style.display = "none";
