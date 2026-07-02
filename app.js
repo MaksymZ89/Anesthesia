@@ -54,11 +54,10 @@ Endoskopowa operacja zatok`;
 
 const REPORT_TEMPLATE = `Konsultacja Anestezjologiczna
 [Patient_Gendered] [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
-Dział [Department]
-Zabieg [Operation]
-Ukł. Nerwowy: [Neurological_Orientation] auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]?
+Dział [Department]. Zabieg [Operation]
+Ukł. Nerwowy: [Neurological_Orientation] auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]
 Ukł. Oddechowy: wydolny, [Respiratory_Rate] RR/min, saturacja [Saturation]%. Osłuchowo [Lung_Auscultation]
-Ukł. Krążenia: wydolny, Tony serca w normie . BP [Blood_Preasure] , [Heart_Rate] /min. [Arytmia]. Obrzęki obwodowe - [Oedema]
+Ukł. Krążenia: wydolny, tony serca w normie . BP [Blood_Preasure] , [Heart_Rate] /min. Arytmia - [Arytmia]. Obrzęki obwodowe - [Oedema]
 Współistniejące choroby:
 
 [Disease]
@@ -86,6 +85,156 @@ function getValue(id) {
 
 function formatField(value) {
   return value == null ? "" : String(value);
+}
+
+const AUSCULTATION_LOCATION_TEXT = {
+  bilateral: "obustronnie",
+  right_all: "nad całym polem płuca prawego",
+  right_upper: "nad polem górnym płuca prawego",
+  right_mid: "nad polem środkowym płuca prawego",
+  right_lower: "nad polem dolnym (podstawnym) płuca prawego",
+  left_all: "nad całym polem płuca lewego",
+  left_upper: "nad polem górnym płuca lewego",
+  left_lower: "nad polem dolnym (podstawnym) płuca lewego",
+  bases: "obustronnie u podstaw płuc",
+};
+
+const AUSCULTATION_DETAIL_OPTIONS = {
+  weakened: [
+    ["mild", "nieznaczne osłabienie"],
+    ["marked", "znaczne osłabienie"],
+    ["suspected_fluid", "sugerujące płyn w jamie opłucnej"],
+    ["suspected_atelectasis", "sugerujące niedodmę"],
+  ],
+  crackles: [
+    ["fine_moist", "drobnobańkowe, wilgotne"],
+    ["coarse_moist", "grubobańkowe, wilgotne"],
+    ["fine_dry", "drobnobańkowe, suche"],
+  ],
+  crepitations: [
+    ["velcro", "typu velcro — sugestywne dla śródmiąższowej choroby płuc"],
+    ["mild", "nieliczne"],
+    ["extensive", "liczne, rozsiane"],
+  ],
+  wheezes: [
+    ["expiratory", "wydechowe, wydech wydłużony"],
+    ["inspiratory_expiratory", "wdechowo-wydechowe"],
+    ["diffuse", "rozsiane, liczne"],
+    ["single", "pojedyncze"],
+  ],
+  bronchial: [
+    ["focal_infiltrate", "ogniskowo zaostrzony — podejrzenie nacieku zapalnego"],
+    ["diffuse", "rozlany"],
+  ],
+  friction: [
+    ["standard", "wysłuchiwane wyraźnie"],
+    ["subtle", "wysłuchiwane dyskretnie"],
+  ],
+  absent: [
+    ["pneumothorax", "podejrzenie odmy opłucnowej"],
+    ["large_effusion", "podejrzenie dużej ilości płynu w jamie opłucnej"],
+  ],
+};
+
+const AUSCULTATION_FINDING_BASE = {
+  weakened: "szmer pęcherzykowy osłabiony",
+  crackles: "rzężenia",
+  crepitations: "trzeszczenia",
+  wheezes: "świsty i furczenia",
+  bronchial: "szmer oskrzelowy",
+  friction: "tarcie opłucnowe",
+  absent: "brak szmeru pęcherzykowego",
+};
+
+function populateAuscultationDetails() {
+  const detailSelect = document.getElementById("auscultationDetail");
+  const findingSelect = document.getElementById("auscultationFinding");
+  if (!detailSelect || !findingSelect) return;
+
+  const key = findingSelect.value;
+  const options = AUSCULTATION_DETAIL_OPTIONS[key] || [];
+  detailSelect.innerHTML = options
+    .map(([value, label]) => `<option value="${value}">${label}</option>`)
+    .join("");
+}
+
+function toggleAuscultationDetails() {
+  const details = document.getElementById("auscultationAbnormalBlock");
+  const result = document.getElementById("auscultationGeneral");
+  if (!details || !result) return;
+  details.style.display = result.value === "nieprawidłowy" ? "block" : "none";
+}
+
+function getAuscultationText() {
+  const result = getValue("auscultationGeneral");
+  if (result !== "nieprawidłowy") {
+    return "szmer pęcherzykowy prawidłowy, symetryczny nad polami płucnymi";
+  }
+
+  const findingKey = getValue("auscultationFinding");
+  const locationKey = getValue("auscultationLocation");
+  const detailValue = getValue("auscultationDetail");
+  const locationText = AUSCULTATION_LOCATION_TEXT[locationKey] || "nad polami płucnymi";
+  const detailOptions = AUSCULTATION_DETAIL_OPTIONS[findingKey] || [];
+  const detailItem = detailOptions.find(([value]) => value === detailValue);
+  const detailText = detailItem ? detailItem[1] : "";
+  const base = AUSCULTATION_FINDING_BASE[findingKey] || "Nieprawidłowe osłuchowo";
+
+  let sentence = "";
+  switch (findingKey) {
+    case "weakened":
+      sentence = `${base} ${locationText}${detailText ? ", " + detailText : ""}.`;
+      break;
+    case "crackles":
+      sentence = `Rzężenia ${detailText} ${locationText}.`;
+      break;
+    case "crepitations":
+      sentence = `Trzeszczenia ${locationText}${detailText ? ", " + detailText : ""}.`;
+      break;
+    case "wheezes":
+      sentence = `Świsty i furczenia, ${detailText}, wysłuchiwane ${locationText}.`;
+      break;
+    case "bronchial":
+      sentence = `Szmer oskrzelowy ${locationText}${detailText ? ", " + detailText : ""}.`;
+      break;
+    case "friction":
+      sentence = `Tarcie opłucnowe ${detailText} ${locationText}.`;
+      break;
+    case "absent":
+      sentence = `Brak szmeru pęcherzykowego ${locationText} — ${detailText}.`;
+      break;
+    default:
+      sentence = `${base} ${locationText}.`;
+  }
+
+  return sentence.replace(/\s+/g, " ").trim();
+}
+
+function getQualificationText() {
+  const status = getValue("qualificationStatus");
+  const risk = getValue("qualificationRisk");
+  const type = getValue("qualificationType");
+  const condition = getValue("qualificationCondition");
+
+  if (status === "partial") {
+    return condition
+      ? `warunkowo — ${condition}`
+      : "warunkowo";
+  }
+
+  if (status === "not-qualified") {
+    return "niezakwalifikowany/a do znieczulenia";
+  }
+
+  const typeText = {
+    ogólne: "znieczulenia ogólnego",
+    przewodowe: "znieczulenia przewodowego",
+    blokada: "blokady nerwów obwodowych",
+    sedacja: "analgo-sedacji z nadzorem anestezjologicznym",
+  }[type] || "znieczulenia";
+
+  const riskText = risk === "wysokie" ? "wysokim ryzykiem powikłań" : `ryzykiem powikłań ${risk}`;
+  return `zakwalifikowany/a do ${typeText} z ${riskText}`;
 }
 
 function getGenderFields(sex) {
@@ -164,6 +313,11 @@ function populateDepartmentSelect(placeholderText = "Wybierz dział…") {
     option.textContent = dept;
     departmentSelect.appendChild(option);
   });
+
+  const otherOption = document.createElement("option");
+  otherOption.value = "__other__";
+  otherOption.textContent = "Inny dział…";
+  departmentSelect.appendChild(otherOption);
 }
 
 function populateProcedureSelect(department) {
@@ -172,10 +326,10 @@ function populateProcedureSelect(department) {
   procedureSelect.innerHTML = "";
   procedureGroup.style.display = "none";
 
-  if (!department || !PROCEDURES_BY_DEPARTMENT[department]) {
+  if (!department || (!PROCEDURES_BY_DEPARTMENT[department] && department !== "__other__")) {
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = "Wybierz dział najpierw";
+    placeholder.textContent = department ? "Brak procedur dla wybranego działu" : "Wybierz dział najpierw";
     placeholder.disabled = true;
     placeholder.selected = true;
     procedureSelect.appendChild(placeholder);
@@ -183,7 +337,6 @@ function populateProcedureSelect(department) {
     return;
   }
 
-  const options = PROCEDURES_BY_DEPARTMENT[department];
   const placeholder = document.createElement("option");
   placeholder.value = "";
   placeholder.textContent = "Wybierz zabieg…";
@@ -191,6 +344,16 @@ function populateProcedureSelect(department) {
   placeholder.selected = true;
   procedureSelect.appendChild(placeholder);
 
+  if (department === "__other__") {
+    const otherOption = document.createElement("option");
+    otherOption.value = "__other__";
+    otherOption.textContent = "Inny…";
+    procedureSelect.appendChild(otherOption);
+    procedureSelect.disabled = false;
+    return;
+  }
+
+  const options = PROCEDURES_BY_DEPARTMENT[department];
   options.forEach((proc) => {
     const option = document.createElement("option");
     option.value = proc;
@@ -326,6 +489,7 @@ function collectFormData() {
   const diseaseText = getValue("disease");
   const department = getValue("department");
   const procedure = getValue("procedure");
+  const otherDepartment = getValue("otherDepartment");
   const otherProcedure = getValue("otherProcedure");
 
   if (otherIllness) illnesses.push(otherIllness);
@@ -333,17 +497,18 @@ function collectFormData() {
   if (otherMedication) medications.push(otherMedication);
 
   const genderFields = getGenderFields(sex);
+  const selectedDepartment = department === "__other__" ? (otherDepartment || "Inny dział") : department;
   const fields = {
     ...genderFields,
     Age: getValue("age"),
     Mass: getValue("mass"),
     Height: getValue("height"),
-    Department: department,
+    Department: selectedDepartment,
     Operation: otherProcedure || procedure,
     Neurological_Signs: getValue("neurologicalSigns"),
     Respiratory_Rate: getValue("respiratoryRate"),
     Saturation: getValue("saturation"),
-    Lung_Auscultation: getValue("lungAuscultation"),
+    Lung_Auscultation: getAuscultationText(),
     Blood_Preasure: getValue("bloodPressure"),
     Heart_Rate: getValue("heartRate"),
     Arytmia: getValue("arytmia"),
@@ -353,7 +518,7 @@ function collectFormData() {
     Alergie: getValue("allergies"),
     Smoking: getValue("smoking"),
     Drugs: getValue("drugs"),
-    Qualification_Result: getValue("qualificationResult"),
+    Qualification_Result: getQualificationText(),
     ASA_Scale: getValue("asaScale"),
     Mallampathi_Scale: getValue("mallampathiScale"),
     Neck_Mobility: getValue("neckMobility"),
@@ -452,12 +617,57 @@ async function loadRules() {
   }
 }
 
+function handleDepartmentChange() {
+  const departmentSelect = document.getElementById("department");
+  const otherDepartmentGroup = document.getElementById("otherDepartmentGroup");
+  if (departmentSelect.value === "__other__") {
+    otherDepartmentGroup.style.display = "block";
+  } else {
+    otherDepartmentGroup.style.display = "none";
+  }
+  populateProcedureSelect(departmentSelect.value);
+  handleProcedureChange();
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   populateDepartmentSelect("Wczytywanie działów…");
   populateProcedureSelect("");
   await Promise.all([loadRules(), loadProcedures()]);
-  document.getElementById("department").addEventListener("change", (e) => populateProcedureSelect(e.target.value));
+  document.getElementById("department").addEventListener("change", handleDepartmentChange);
   document.getElementById("procedure").addEventListener("change", handleProcedureChange);
+  const auscultationGeneral = document.getElementById("auscultationGeneral");
+  const auscultationFinding = document.getElementById("auscultationFinding");
+  const auscultationLocation = document.getElementById("auscultationLocation");
+  const auscultationDetail = document.getElementById("auscultationDetail");
+  const qualificationStatus = document.getElementById("qualificationStatus");
+  const qualificationQualifiedBlock = document.getElementById("qualificationQualifiedBlock");
+  const qualificationPartialBlock = document.getElementById("qualificationPartialBlock");
+  if (auscultationGeneral) {
+    auscultationGeneral.addEventListener("change", () => {
+      toggleAuscultationDetails();
+      generate();
+    });
+  }
+  [auscultationFinding, auscultationLocation, auscultationDetail].forEach((el) => {
+    if (el) {
+      el.addEventListener("change", () => {
+        populateAuscultationDetails();
+        generate();
+      });
+    }
+  });
+  if (qualificationStatus) {
+    qualificationStatus.addEventListener("change", () => {
+      if (qualificationQualifiedBlock && qualificationPartialBlock) {
+        const showQualified = qualificationStatus.value === "qualified";
+        qualificationQualifiedBlock.style.display = showQualified ? "block" : "none";
+        qualificationPartialBlock.style.display = qualificationStatus.value === "partial" ? "block" : "none";
+      }
+      generate();
+    });
+  }
+  populateAuscultationDetails();
+  toggleAuscultationDetails();
   document.getElementById("generateBtn").addEventListener("click", generate);
   document.getElementById("copyBtn").addEventListener("click", copyOutput);
   document.getElementById("downloadBtn").addEventListener("click", downloadOutput);
@@ -466,6 +676,34 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("reportBody").innerHTML = '<span class="empty">Wypełnij dane pacjenta i kliknij "Generuj notatkę", aby wygenerować tekst tutaj.</span>';
     document.getElementById("tagRow").innerHTML = "";
     document.getElementById("otherProcedureGroup").style.display = "none";
+    document.getElementById("otherDepartmentGroup").style.display = "none";
+    const resultSelect = document.getElementById("auscultationGeneral");
+    if (resultSelect) {
+      resultSelect.value = "prawidłowy";
+    }
+    const qualificationStatusReset = document.getElementById("qualificationStatus");
+    if (qualificationStatusReset) {
+      qualificationStatusReset.value = "qualified";
+    }
+    if (qualificationQualifiedBlock) {
+      qualificationQualifiedBlock.style.display = "block";
+    }
+    if (qualificationPartialBlock) {
+      qualificationPartialBlock.style.display = "none";
+    }
+    const details = document.getElementById("auscultationAbnormalBlock");
+    if (details) {
+      details.style.display = "none";
+    }
+    const findingSelect = document.getElementById("auscultationFinding");
+    if (findingSelect) {
+      findingSelect.value = "weakened";
+    }
+    const locationSelect = document.getElementById("auscultationLocation");
+    if (locationSelect) {
+      locationSelect.value = "bilateral";
+    }
+    populateAuscultationDetails();
     populateDepartmentSelect();
     populateProcedureSelect("");
   });
