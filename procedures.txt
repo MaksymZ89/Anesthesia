@@ -4,24 +4,32 @@
 # You can add more departments later by repeating Dział: <name>.
 
 Dział: Chirurgia ogólna
+Appendektomia
 Cholecystektomia
-Węzłowanie przepukliny pachwinowej
-Hemiekstrakcja jelita grubego
-Laparoskopia diagnostyczna
-Resekcja guza tarczycy
+Hernioplastyka
+Hemikolektomia
+Amputacja palca ręki
+Amputacja palca stopy
+Amputacja podudzia
 
 Dział: Ortopedia
-Endoprotezoplastyka stawu biodrowego
-Artroskopia kolana
-Rekonstrukcja więzadła krzyżowego przedniego
-Osteotomia piszczeli
-Operacja zęba trzonowego
+Endoprotezoplastyka stawu biodrowego lewego
+Endoprotezoplastyka stawu biodrowego prawego
+Artroskopia kolana lewego
+Artroskopia kolana prawego
+Endoprotezoplastyka stawu kolanowego lewego
+Endoprotezoplastyka stawu kolanowego prawego
+Halux stopa lewa
+Halux stopa prawa
+Artroskopia barku prawego
+Artroskopia barku lewego
+Repozycja i stabilizacja
 
 Dział: Okulistyka
-Zaćma oko prawe i lewe
-Zaćma oko prawe
-Zaćma oko lewe
-Operacja laparoskopowa guza jajnika
+Fakoemulsyfikacja zaćmy, oko prawe i lewe
+Fakoemulsyfikacja zaćmy, oko prawe
+Fakoemulsyfikacja zaćmy oko lewe
+Witrektomia
 
 Dział: Urologia
 Prostatektomia radykalna
@@ -29,8 +37,6 @@ Endoskopowa resekcja gruczołu krokowego (TURP)
 Nefrektomia częściowa
 Litotrypsja
 
-Dział: Otolaryngologia
-Tympanoplastyka
-Septoplastyka
-Usunięcie migdałków podniebiennych
-Endoskopowa operacja zatok
+Dział: Endoskopia
+EUS
+ECPW
