@@ -525,7 +525,6 @@ function populateMedicationSuggestions() {
         const currentValue = input.value;
         input.value = replaceLastToken(currentValue, medication.name);
         suggestionsBox.style.display = "none";
-        generate();
       });
       suggestionsBox.appendChild(option);
     });
@@ -533,7 +532,6 @@ function populateMedicationSuggestions() {
 
   input.addEventListener("input", () => {
     renderSuggestions(input.value);
-    generate();
   });
 
   input.addEventListener("focus", () => renderSuggestions(input.value));
@@ -1111,14 +1109,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (auscultationGeneral) {
     auscultationGeneral.addEventListener("change", () => {
       toggleAuscultationDetails();
-      generate();
     });
   }
   [auscultationFinding, auscultationLocation, auscultationDetail].forEach((el) => {
     if (el) {
       el.addEventListener("change", () => {
         populateAuscultationDetails();
-        generate();
       });
     }
   });
@@ -1129,7 +1125,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         qualificationQualifiedBlock.style.display = showQualified ? "block" : "none";
         qualificationPartialBlock.style.display = qualificationStatus.value === "partial" ? "block" : "none";
       }
-      generate();
     });
   }
 
@@ -1137,21 +1132,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   qualificationTypeOptions.forEach((option) => {
     option.addEventListener("change", () => {
       toggleQualificationTypeCustom();
-      generate();
     });
   });
 
-  if (qualificationTypeCustom) {
-    qualificationTypeCustom.addEventListener("input", generate);
-  }
-
-  if (asaEmergency) {
-    asaEmergency.addEventListener("change", generate);
-  }
-
-  if (medicationsList) {
-    medicationsList.addEventListener("input", generate);
-  }
 
   populateAuscultationDetails();
   toggleAuscultationDetails();
