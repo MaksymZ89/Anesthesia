@@ -663,7 +663,7 @@ async function loadMedications() {
   if (window.location.protocol === "file:") {
     MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
     populateMedicationSuggestions();
-    setLoadStatus("Otworzono z file:// — używane domyślne leki. Jeśli chcesz, możesz wczytać lokalny medications.txt.");
+    setLoadStatus("Otworzono z file:// — używane domyślne leki.");
     return;
   }
 
@@ -681,41 +681,8 @@ async function loadMedications() {
     console.error("Could not load medications.txt", e);
     MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
     populateMedicationSuggestions();
-    setLoadStatus("Nie można wczytać medications.txt — używane domyślne leki. Możesz wczytać plik lokalny ręcznie.");
+    setLoadStatus("Nie można wczytać medications.txt — używane domyślne leki.");
   }
-}
-
-function loadLocalMedicationsFile(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    const raw = reader.result;
-    const parsed = parseMedicationsTxt(raw);
-    if (!parsed.length) {
-      setLoadStatus("Wybrano plik medications.txt, ale nie udało się sparsować danych. Używane domyślne leki.");
-      MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
-    } else {
-      MEDICATIONS_DB = parsed;
-      setLoadStatus("Wczytano lokalny plik medications.txt.");
-    }
-    populateMedicationSuggestions();
-  };
-  reader.onerror = () => {
-    setLoadStatus("Nie udało się odczytać wybranego pliku medications.txt.");
-    MEDICATIONS_DB = parseMedicationsTxt(DEFAULT_MEDICATIONS_TEXT);
-    populateMedicationSuggestions();
-  };
-  reader.readAsText(file, "UTF-8");
-}
-
-function initializeLocalMedicationLoader() {
-  const fileInput = document.getElementById("medicationsFile");
-  if (!fileInput) return;
-
-  fileInput.addEventListener("change", () => {
-    const file = fileInput.files && fileInput.files[0];
-    if (!file) return;
-    loadLocalMedicationsFile(file);
-  });
 }
 
 function createPreviousProcedureRow() {
@@ -1015,8 +982,12 @@ function renderTags(results) {
   });
 }
 
-function generate() {
-  validateForm();
+function generate(shouldValidate = false) {
+  if (shouldValidate) {
+    validateForm();
+  } else {
+    clearValidationState();
+  }
 
   const data = collectFormData();
   const results = runRules(RULES, data);
@@ -1096,7 +1067,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   await Promise.all([loadRules(), loadProcedures(), loadMedications()]);
   document.getElementById("department").addEventListener("change", handleDepartmentChange);
   document.getElementById("procedure").addEventListener("change", handleProcedureChange);
-  initializeLocalMedicationLoader();
   initializePreviousProcedures();
   const auscultationGeneral = document.getElementById("auscultationGeneral");
   const auscultationFinding = document.getElementById("auscultationFinding");
@@ -1142,21 +1112,21 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   if (qualificationTypeCustom) {
-    qualificationTypeCustom.addEventListener("input", generate);
+    qualificationTypeCustom.addEventListener("input", () => generate());
   }
 
   if (asaEmergency) {
-    asaEmergency.addEventListener("change", generate);
+    asaEmergency.addEventListener("change", () => generate());
   }
 
   if (medicationsList) {
-    medicationsList.addEventListener("input", generate);
+    medicationsList.addEventListener("input", () => generate());
   }
 
   populateAuscultationDetails();
   toggleAuscultationDetails();
   toggleQualificationTypeCustom();
-  document.getElementById("generateBtn").addEventListener("click", generate);
+  document.getElementById("generateBtn").addEventListener("click", () => generate(true));
   document.getElementById("copyBtn").addEventListener("click", copyOutput);
   document.getElementById("downloadBtn").addEventListener("click", downloadOutput);
   document.getElementById("resetBtn").addEventListener("click", () => {
