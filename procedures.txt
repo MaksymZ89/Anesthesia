@@ -40,3 +40,8 @@ Litotrypsja
 Dział: Endoskopia
 EUS
 ECPW
+
+Dział: Neurochirurgia
+Epidoroliza
+SCS I etap
+SCS II etap
