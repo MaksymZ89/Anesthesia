@@ -67,6 +67,11 @@ Bumetanid | bumetanid | Diuretyki
 Candesartan | candesartan | ARB`;
 
 const DEFAULT_GENERAL_RECOMMENDATIONS = [
+  "Standardowe badania laboratoryjne do 7 dni przed zabiegiem (morfologia, jonogram, glikemia, krzepnięcia, kreatynina)",
+  "TSH, fT3, fT4",
+  "Ekg do 7 dni przed zabiegiem",
+  "RTG klatki piersiowej do 30 dni przed zabiegiem",
+  "Inne badania D-Dimery, Troponina ( przed , 2h po i po 24h po operacji)  NT-proNBP, Aspat, Alat, bilirubina, Mg, Ca",
   "Zakaz picia alkoholu na 72 godziny przed zabiegiem",
   "Zakaz palenie/waporyzacji na 48 godzin przed zabiegiem",
   "Karencja pokarmowa – zakaz przyjęcia pokarmów stałych i płynnych na 6 godzin przed zabiegiem",
@@ -921,20 +926,10 @@ function collectFormData() {
 }
 
 function getSelectedStandardRecommendations() {
-  const items = [];
-  if (document.getElementById("includeStandardRecommendation1")?.checked) {
-    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[0]);
-  }
-  if (document.getElementById("includeStandardRecommendation2")?.checked) {
-    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[1]);
-  }
-  if (document.getElementById("includeStandardRecommendation3")?.checked) {
-    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[2]);
-  }
-  if (document.getElementById("includeStandardRecommendation4")?.checked) {
-    items.push(DEFAULT_GENERAL_RECOMMENDATIONS[3]);
-  }
-  return items;
+  return Array.from(document.querySelectorAll('input[id^="includeStandardRecommendation"]'))
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.closest("label")?.querySelector("span")?.textContent?.trim() || "")
+    .filter(Boolean);
 }
 
 function buildReportText(data, results) {

@@ -320,6 +320,15 @@ fieldset {
   white-space: pre-wrap;
   line-height: 1.65;
   color: var(--ink);
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+}
+
+@media (max-width: 920px) {
+  .report-body {
+    max-height: none;
+    overflow-y: visible;
+  }
 }
 
 .report-body .empty {
