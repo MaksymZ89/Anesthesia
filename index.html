@@ -257,7 +257,14 @@
           </div>
           <div>
             <label for="teethCondition">Zęby</label>
-            <input type="text" id="teethCondition" placeholder="np. w dobrym stanie" value="sanowane, bez protezów" />
+            <select id="teethCondition">
+              <option value="sanowane, bez protezów" selected>Sanowane, bez protezów</option>
+              <option value="sanowane">Sanowane</option>
+              <option value="niesanowane">Niesanowane</option>
+              <option value="protezy pełne">Protezy pełne</option>
+              <option value="protezy częściowe">Protezy częściowe</option>
+              <option value="implanty">Implanty stałe</option>
+            </select>
           </div>
         </div>
         <label for="recommendationMedicationStop">Leki do odstawienia</label>
@@ -273,9 +280,7 @@
           <label class="check-item"><input type="checkbox" id="includeStandardRecommendation5" style="margin-right: 0.5rem;" /><span>Inne badania D-Dimery, Troponina ( przed , 2h po i po 24h po operacji)  NT-proNBP, Aspat, Alat, bilirubina, Mg, Ca</span></label>
           <label class="check-item"><input type="checkbox" id="includeStandardRecommendation6" checked style="margin-right: 0.5rem;" /><span>Zakaz picia alkoholu na 72 godziny przed zabiegiem</span></label>
           <label class="check-item"><input type="checkbox" id="includeStandardRecommendation7" checked style="margin-right: 0.5rem;" /><span>Zakaz palenie/waporyzacji na 48 godzin przed zabiegiem</span></label>
-          <label class="check-item"><input type="checkbox" id="includeStandardRecommendation8" checked style="margin-right: 0.5rem;" /><span>Karencja pokarmowa – zakaz przyjęcia pokarmów stałych i płynnych na 6 godzin przed zabiegiem</span></label>
-          <label class="check-item"><input type="checkbox" id="includeStandardRecommendation9" checked style="margin-right: 0.5rem;" /><span>Dozwolone picie wody niegazowanej do 2 godzin przed zabiegiem</span></label>
-          <label class="check-item"><input type="checkbox" id="includeStandardRecommendation10" checked style="margin-right: 0.5rem;" /><span>Dozwolone przyjęcie leków przewlekłych z małą ilością wody</span></label>
+          <p style="font-size:0.82rem; color:#555; margin:0.4rem 0 0;">Zawsze dołączane: karencja pokarmowa (6h), woda do 2h, leki przewlekłe z wodą.</p>
         </fieldset>
         <label for="recommendationGeneral">Zalecenia ogólne</label>
         <textarea id="recommendationGeneral" class="free-text" placeholder="np. zachować poziom glikemii" rows="3"></textarea>

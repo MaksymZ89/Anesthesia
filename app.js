@@ -80,7 +80,7 @@ const DEFAULT_GENERAL_RECOMMENDATIONS = [
 
 const REPORT_TEMPLATE = `Konsultacja Anestezjologiczna
 [Patient_Gendered] [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
-Zabieg [Operation]
+Oddział [Department]. Zabieg [Operation]
 Ukł. Nerwowy: [Neurological_Orientation] auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]
 Ukł. Oddechowy: wydolny, [Respiratory_Rate] RR/min, saturacja [Saturation]%. Osłuchowo [Lung_Auscultation]
 Ukł. Krążenia: wydolny, tony serca w normie . BP [Blood_Preasure] , [Heart_Rate] /min. Arytmia - [Arytmia]. Obrzęki obwodowe - [Oedema]
@@ -938,16 +938,26 @@ function buildReportText(data, results) {
   results.ADD_WARNING.forEach((text) => generated.push(`Ostrzeżenie: ${text}`));
   results.ADD_NOTE.forEach((text) => generated.push(`Uwaga: ${text}`));
 
-  const generalRecs = [];
+  const HARDCODED_RECS = [
+    "Karencja pokarmowa \u2013 zakaz przyj\u0119cia pokarm\u00f3w sta\u0142ych i p\u0142ynnych na 6 godzin przed zabiegiem",
+    "Dozwolone picie wody niegazowanej do 2 godzin przed zabiegiem",
+    "Dozwolone przyj\u0119cie lek\u00f3w przewlek\u0142ych z ma\u0142\u0105 ilo\u015bci\u0105 wody",
+  ];
+  const generalRecs = [...HARDCODED_RECS];
+
+  const teethVal = (getValue("teethCondition") || "").toLowerCase();
+  if (teethVal.includes("protezy")) {
+    generalRecs.push("Usun\u0105\u0107 protezy z\u0119bowe przed zabiegiem");
+  }
+
   if (data.fields.Selected_Standard_Recommendations.length) {
     generalRecs.push(...data.fields.Selected_Standard_Recommendations);
   }
   if (data.fields.Recomendation_General.trim()) {
-    if (generalRecs.length) generalRecs.push(data.fields.Recomendation_General.trim());
-    else generalRecs.push(data.fields.Recomendation_General.trim());
+    generalRecs.push(data.fields.Recomendation_General.trim());
   }
   if (generated.length) {
-    if (generalRecs.length) generalRecs.push("=== Automatyczne zalecenia ===");
+    generalRecs.push("=== Automatyczne zalecenia ===");
     generalRecs.push(...generated);
   }
 
@@ -1079,10 +1089,15 @@ window.addEventListener("DOMContentLoaded", async () => {
       generate();
     });
   }
-  [auscultationFinding, auscultationLocation, auscultationDetail].forEach((el) => {
+  if (auscultationFinding) {
+    auscultationFinding.addEventListener("change", () => {
+      populateAuscultationDetails();
+      generate();
+    });
+  }
+  [auscultationLocation, auscultationDetail].forEach((el) => {
     if (el) {
       el.addEventListener("change", () => {
-        populateAuscultationDetails();
         generate();
       });
     }
