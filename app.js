@@ -80,7 +80,7 @@ const DEFAULT_GENERAL_RECOMMENDATIONS = [
 
 const REPORT_TEMPLATE = `Konsultacja Anestezjologiczna
 [Patient_Gendered] [Age] l. , waga [Mass] kg, wzrost [Height] cm, 
-Oddział [Department]. Zabieg [Operation]
+Oddział: [Department]. Zabieg: [Operation]
 Ukł. Nerwowy: [Neurological_Orientation] auto- i allo-psychocznie. Deficyty neurologiczne [Neurological_Signs]
 Ukł. Oddechowy: wydolny, [Respiratory_Rate] RR/min, saturacja [Saturation]%. Osłuchowo [Lung_Auscultation]
 Ukł. Krążenia: wydolny, tony serca w normie . BP [Blood_Preasure] , [Heart_Rate] /min. Arytmia - [Arytmia]. Obrzęki obwodowe - [Oedema]
@@ -101,10 +101,10 @@ Wynik konsultacji:
 [Qualification_Result]
 Skala ASA - [ASA_Scale], Skala Mallapathi - [Mallampathi_Scale], ruchomość szyi [Neck_Mobility],  zęby - [Teeth_condition]
 
-Leki odstawic w dzień zabiegu:
+Leki odstawić w dniu zabiegu:
 [Recomendation_Medication_Stop]
 
-Leki przyjąć w dzień zabiegu:
+Leki przyjąć w dniu zabiegu:
 [Recomendation_Medication_Take]
 
 Zalecenia:
@@ -411,7 +411,7 @@ function getQualificationText(sex) {
   }
 
   if (status === "not-qualified") {
-    return `${getQualificationAdjective(sex, true)} do znieczulenia`;
+    return "Niezakwalifikowany do planowego znieczulenia. Znieczulenie ze wskazań życiowych";
   }
 
   return `${getQualificationAdjective(sex)} do ${typeText} z ${riskText}`;
@@ -967,7 +967,16 @@ function buildReportText(data, results) {
     Recomendation_Medication_Stop: data.fields.Recomendation_Medication_Stop,
     Recomendation_Medication_Take: data.fields.Recomendation_Medication_Take,
   };
-  return fillTemplate(REPORT_TEMPLATE, filledFields);
+
+  let reportText = fillTemplate(REPORT_TEMPLATE, filledFields);
+  if (!data.fields.Recomendation_Medication_Stop.trim()) {
+    reportText = reportText.replace(/\nLeki odstawi\u0107 w dniu zabiegu:\n\n/, "\n");
+  }
+  if (!data.fields.Recomendation_Medication_Take.trim()) {
+    reportText = reportText.replace(/\nLeki przyj\u0105\u0107 w dniu zabiegu:\n\n/, "\n");
+  }
+
+  return reportText;
 }
 
 function renderTags(results) {

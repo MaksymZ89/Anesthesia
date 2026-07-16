@@ -40,8 +40,16 @@ Litotrypsja
 Dział: Endoskopia
 EUS
 ECPW
+Kolonoskopia
 
 Dział: Neurochirurgia
 Epidoroliza
 SCS I etap
 SCS II etap
+
+Dział: Chirurgia Szczękowo-Twarzowa
+Usunięcie zatrzymanego zęba mądrości
+Repozycja i zespolenie złamań kości twarzoczaszki
+Resekcja torbieli kości szczęki/żuchwy
+Nacięcie i drenaż ropnia w obrębie twarzy/jamy ustnej
+Operacyjne leczenie nowotworów jamy ustnej
